@@ -10,6 +10,7 @@
 #include "json.hpp"
 #include "spline.h"
 #include "Map.h"
+#include "Car.h"
 
 using namespace std;
 
@@ -34,9 +35,11 @@ string hasData(string s) {
 int main() {
   uWS::Hub h;
 
-  Map map("../data/highway_map.csv");
+  Map world("../data/highway_map.csv");
+  Car ego(-1);
+  std::map<int, Car> cars;
 
-  h.onMessage([&map](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&world, &ego, &cars](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -61,6 +64,7 @@ int main() {
           double car_d = j[1]["d"];
           double car_yaw = j[1]["yaw"];
           double car_speed = j[1]["speed"];
+          // TODO: Update ego state
 
           // Previous path data given to the Planner
           auto previous_path_x = j[1]["previous_path_x"];
@@ -71,6 +75,14 @@ int main() {
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
           auto sensor_fusion = j[1]["sensor_fusion"];
+          for(auto other : sensor_fusion) {
+            int id = other[0];
+            if(cars.find(id) == cars.end()) {
+              cars[id].id = id;
+            }
+
+            // TODO: Update other cars' state
+          }
 
           json msgJson;
 
@@ -80,7 +92,7 @@ int main() {
           double dist_inc = 0.3;
           for(int i = 0; i < 50; i++)
           {
-            const vector<double> &p = map.getXY(car_s + (dist_inc * i), 6);
+            const vector<double> &p = world.getXY(car_s + (dist_inc * i), 6);
             next_x_vals.push_back(p[0]);
             next_y_vals.push_back(p[1]);
           }
