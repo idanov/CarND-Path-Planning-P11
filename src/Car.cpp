@@ -31,3 +31,9 @@ void Car::updateVelocity(double s_dot, double d_dot) {
 void Car::display() {
   cout<<"Car("<<id<<"): s("<<s<<","<<s_dot<<")   d("<<d<<","<<d_dot<<")"<<endl;
 }
+
+Car Car::stateAt(double dt) {
+  Car state = Car(*this);
+  state.s = s + dt * s_dot;
+  return state;
+}

@@ -6,6 +6,14 @@
 
 using namespace std;
 
+// Max speed in m/s
+const double max_speed = 22.;
+const double dt = .02;
+const double max_speed_dt = max_speed * dt;
+const int n_steps = 50;
+const double mph2ms = 0.44704;
+const double car_buffer = 15;
+
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 

@@ -4,7 +4,7 @@ BehaviourPlanner::BehaviourPlanner(string initial_state) {
   state = initial_state;
 }
 
-Car BehaviourPlanner::updatePlan(Car ego, vector<vector<Car>> predictions) {
+Car BehaviourPlanner::updatePlan(Car ego, const vector<vector<Car>>& predictions) {
   int lane = ego.getLane();
   vector<Car> leader_path;
   double leader_dist = 100000;
@@ -17,13 +17,23 @@ Car BehaviourPlanner::updatePlan(Car ego, vector<vector<Car>> predictions) {
     }
   }
 
-  double t = 1;
   if(!leader_path.empty()) {
-    ego.s = min(leader_path.end()->s - 10, ego.s + ego.s_dot * t);
-    ego.s_dot = leader_path.end()->s_dot;
+    double t = dt * leader_path.size();
+    Car leaderEnd = *leader_path.end();
+    ego.s = min(leaderEnd.s - car_buffer, ego.s + ego.s_dot * t);
+    ego.s_dot = min(max_speed, leaderEnd.s_dot);
+    ego.s_ddot = 0;
+    ego.d = ego.getLane() * LANE_WIDTH + 2;
+    ego.d_dot = 0;
+    ego.d_ddot = 0;
   } else {
+    double t = dt * n_steps;
     ego.s = ego.s + ego.s_dot * t;
-    ego.s_dot = 21;
+    ego.s_dot = max_speed;
+    ego.s_ddot = 0;
+    ego.d = ego.getLane() * LANE_WIDTH + 2;
+    ego.d_dot = 0;
+    ego.d_ddot = 0;
   }
 
   return ego;

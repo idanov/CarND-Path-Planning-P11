@@ -20,8 +20,6 @@ using namespace std;
 // for convenience
 using json = nlohmann::json;
 
-const double mph2ms = 0.44704;
-
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -97,9 +95,9 @@ int main() {
           json msgJson;
 
           // Action
-          const vector<vector<Car>>& predictions = predictor.generatePredictions();
-          const Car& goalState = planner.updatePlan(ego, predictions);
-          const vector<vector<double>>& path = traj.generate(ego, goalState, previous_path_x, previous_path_y, end_path_s, end_path_d);
+          vector<vector<Car>> predictions = predictor.generatePredictions();
+          Car goalState = planner.updatePlan(ego, predictions);
+          vector<vector<double>> path = traj.generate(ego, goalState, previous_path_x, previous_path_y, end_path_s, end_path_d);
 
           vector<double> next_x_vals = path[0];
           vector<double> next_y_vals = path[1];

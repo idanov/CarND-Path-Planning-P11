@@ -9,12 +9,6 @@
 
 using namespace std;
 
-// Max speed in m/s
-const double max_speed = 22.;
-const double dt = .02;
-const double max_speed_dt = max_speed * dt;
-const int n_steps = 50;
-
 class TrajectoryGenerator {
   Map& world;
 public:

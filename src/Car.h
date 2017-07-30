@@ -25,6 +25,7 @@ public:
   explicit Car(int id);
   void updatePos(double s, double d, double x, double y);
   void updateVelocity(double s_dot, double d_dot);
+  Car stateAt(double dt);
 
   int getLane();
   void display();
