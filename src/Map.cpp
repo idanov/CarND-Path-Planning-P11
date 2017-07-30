@@ -196,8 +196,8 @@ vector<double> Map::getFrenetVelocity(double s, double d, double speed, double t
   if(road_angle < 0) road_angle += 2 * M_PI;
   double diff = theta - road_angle;
 
-  double s_dot = speed * sin(diff);
-  double d_dot = speed * cos(diff);
+  double s_dot = speed * cos(diff);
+  double d_dot = speed * sin(diff);
 
   return {s_dot, d_dot};
 }

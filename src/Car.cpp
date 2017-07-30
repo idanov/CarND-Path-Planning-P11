@@ -1,5 +1,4 @@
 #include "Car.h"
-#include "helpers.h"
 
 Car::Car(int id) {
   this->id = id;
@@ -27,4 +26,8 @@ double Car::getLaneD() {
 void Car::updateVelocity(double s_dot, double d_dot) {
   this->s_dot = s_dot;
   this->d_dot = d_dot;
+}
+
+void Car::display() {
+  cout<<"Car("<<id<<"): s("<<s<<","<<s_dot<<")   d("<<d<<","<<d_dot<<")"<<endl;
 }

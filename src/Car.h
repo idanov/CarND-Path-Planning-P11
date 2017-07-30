@@ -2,6 +2,9 @@
 #define PATH_PLANNING_CAR_H
 
 #include <math.h>
+#include <iostream>
+
+using namespace std;
 
 const double LANE_WIDTH = 4;
 
@@ -24,6 +27,7 @@ public:
   void updateVelocity(double s_dot, double d_dot);
 
   int getLane();
+  void display();
   double getLaneD();
 };
 

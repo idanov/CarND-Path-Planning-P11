@@ -20,6 +20,8 @@ using namespace std;
 // for convenience
 using json = nlohmann::json;
 
+const double mph2ms = 0.44704;
+
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -65,8 +67,10 @@ int main() {
 
           // Update ego's position and velocity
           ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
-          auto sd_dot = world.getFrenetVelocity(ego.s, ego.d, j[1]["speed"], deg2rad(j[1]["yaw"]));
+          auto sd_dot = world.getFrenetVelocity(ego.s, ego.d, mph2ms * (double) j[1]["speed"], deg2rad(j[1]["yaw"]));
           ego.updateVelocity(sd_dot[0], sd_dot[1]);
+          cout<<j[1]["speed"]<<endl;
+          ego.display();
 
           // Previous path data given to the BehaviourPlanner
           auto previous_path_x = j[1]["previous_path_x"];
@@ -82,6 +86,7 @@ int main() {
             if(cars.find(id) == cars.end()) {
               cars[id].id = id;
             }
+
             // Update other cars' states
             cars[id].updatePos(other[5], other[6], other[1], other[2]);
             auto polar = cartesian2polar(other[3], other[4]);
