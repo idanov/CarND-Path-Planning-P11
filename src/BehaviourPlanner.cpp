@@ -4,16 +4,11 @@ BehaviourPlanner::BehaviourPlanner(string initial_state) {
   state = initial_state;
 }
 
-void BehaviourPlanner::update_state(Car ego, map<int, vector<Car>> predictions) {
-
-}
-
-Car BehaviourPlanner::getGoal(Car ego, map<int, vector<Car>> predictions) {
+Car BehaviourPlanner::updatePlan(Car ego, vector<vector<Car>> predictions) {
   int lane = ego.getLane();
   vector<Car> leader_path;
   double leader_dist = 100000;
-  for(pair<int, vector<Car>> it : predictions) {
-    vector<Car> v_path = it.second;
+  for(vector<Car> v_path : predictions) {
     if(v_path[0].getLane() == lane && v_path[0].s > ego.s) {
       if(v_path[0].s - ego.s < leader_dist) {
         leader_path = v_path;

@@ -45,7 +45,7 @@ int main() {
   BehaviourPlanner planner("KL");
   Car ego(-1);
 
-  h.onMessage([&world, &ego, &cars, &planner, &traj](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&world, &ego, &cars, &planner, &traj, &predictor](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -88,8 +88,10 @@ int main() {
 
           json msgJson;
 
-
-          const vector<vector<double>> &path = traj.generate(ego, previous_path_x, previous_path_y, end_path_s, end_path_d);
+          // Action
+          const vector<vector<Car>>& predictions = predictor.generatePredictions();
+          const Car& goalState = planner.updatePlan(ego, predictions);
+          const vector<vector<double>>& path = traj.generate(ego, goalState, previous_path_x, previous_path_y, end_path_s, end_path_d);
 
           vector<double> next_x_vals = path[0];
           vector<double> next_y_vals = path[1];

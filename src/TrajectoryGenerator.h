@@ -19,7 +19,7 @@ class TrajectoryGenerator {
   const Map& world;
 public:
   explicit TrajectoryGenerator(const Map& world_): world(world_) {}
-  vector<vector<double>> generate(Car ego, vector<double> previous_path_x, vector<double> previous_path_y, double end_path_s, double end_path_d);
+  vector<vector<double>> generate(Car currState, Car goalState, vector<double> previous_path_x, vector<double> previous_path_y, double end_path_s, double end_path_d);
 };
 
 

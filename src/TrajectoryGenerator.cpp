@@ -2,7 +2,7 @@
 #include "helpers.h"
 
 vector<vector<double>>
-TrajectoryGenerator::generate(Car ego, vector<double> previous_path_x, vector<double> previous_path_y,
+TrajectoryGenerator::generate(Car currState, Car goalState, vector<double> previous_path_x, vector<double> previous_path_y,
                               double end_path_s, double end_path_d) {
   vector<double> next_x_vals;
   vector<double> next_y_vals;
@@ -20,9 +20,9 @@ TrajectoryGenerator::generate(Car ego, vector<double> previous_path_x, vector<do
 
   if(path_size == 0)
   {
-    pos_x = ego.x;
-    pos_y = ego.y;
-    angle = deg2rad(ego.yaw);
+    pos_x = currState.x;
+    pos_y = currState.y;
+    angle = deg2rad(currState.yaw);
   }
   else
   {
