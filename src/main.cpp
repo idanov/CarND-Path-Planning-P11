@@ -13,6 +13,7 @@
 #include "Car.h"
 #include "BehaviourPlanner.h"
 #include "TrajectoryGenerator.h"
+#include "PredictionModule.h"
 
 using namespace std;
 
@@ -38,10 +39,11 @@ int main() {
   uWS::Hub h;
 
   Map world("../data/highway_map.csv");
-  BehaviourPlanner planner("KL");
-  TrajectoryGenerator traj;
-  Car ego(-1);
   std::map<int, Car> cars;
+  PredictionModule predictor(world, cars);
+  TrajectoryGenerator traj(world);
+  BehaviourPlanner planner("KL");
+  Car ego(-1);
 
   h.onMessage([&world, &ego, &cars, &planner, &traj](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -85,6 +87,7 @@ int main() {
           }
 
           json msgJson;
+
 
           const vector<vector<double>> &path = traj.generate(ego, previous_path_x, previous_path_y, end_path_s, end_path_d);
 

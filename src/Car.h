@@ -31,5 +31,4 @@ public:
   double getLaneD();
 };
 
-
 #endif //PATH_PLANNING_CAR_H
