@@ -12,7 +12,6 @@ Car::Car() {
 void Car::updatePos(double s, double d, double x, double y) {
   this->s = s;
   this->d = d;
-  this->lane = (int) d / 4;
   this->x = x;
   this->y = y;
 }
@@ -26,4 +25,12 @@ void Car::updateSpeed(double vx, double vy) {
 void Car::updateYawAndSpeed(double yaw, double speed) {
   this->yaw = yaw;
   this->speed = speed;
+}
+
+int Car::getLane() {
+  return (int) d / (int) LANE_WIDTH;
+}
+
+double Car::getLaneD() {
+  return this->d - (this->getLane() * LANE_WIDTH + LANE_WIDTH / 2);
 }

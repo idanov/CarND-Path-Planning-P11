@@ -11,6 +11,8 @@
 #include "spline.h"
 #include "Map.h"
 #include "Car.h"
+#include "BehaviourPlanner.h"
+#include "TrajectoryGenerator.h"
 
 using namespace std;
 
@@ -36,10 +38,12 @@ int main() {
   uWS::Hub h;
 
   Map world("../data/highway_map.csv");
+  BehaviourPlanner planner("KL");
+  TrajectoryGenerator traj;
   Car ego(-1);
   std::map<int, Car> cars;
 
-  h.onMessage([&world, &ego, &cars](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&world, &ego, &cars, &planner, &traj](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -61,7 +65,7 @@ int main() {
           ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
           ego.updateYawAndSpeed(j[1]["yaw"], j[1]["speed"]);
           
-          // Previous path data given to the Planner
+          // Previous path data given to the BehaviourPlanner
           auto previous_path_x = j[1]["previous_path_x"];
           auto previous_path_y = j[1]["previous_path_y"];
           // Previous path's end s and d values
@@ -82,18 +86,11 @@ int main() {
 
           json msgJson;
 
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          const vector<vector<double>> &path = traj.generate(ego, previous_path_x, previous_path_y, end_path_s, end_path_d);
 
-          double dist_inc = 0.4;
-          for(int i = 0; i < 50; i++)
-          {
-            const vector<double> &p = world.getXY(ego.s + (dist_inc * i), 6);
-            next_x_vals.push_back(p[0]);
-            next_y_vals.push_back(p[1]);
-          }
-          
-          // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
+          vector<double> next_x_vals = path[0];
+          vector<double> next_y_vals = path[1];
+
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 

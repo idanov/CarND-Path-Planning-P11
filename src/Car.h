@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+const double LANE_WIDTH = 4;
+
 class Car {
 public:
   int id;
@@ -10,8 +12,12 @@ public:
   double y;
 
   double s;
+  double s_dot;
+  double s_ddot;
   double d;
-  int lane;
+  double d_dot;
+  double d_ddot;
+
   double speed;
   double yaw;
 
@@ -20,6 +26,9 @@ public:
   void updatePos(double s, double d, double x, double y);
   void updateSpeed(double vx, double vy);
   void updateYawAndSpeed(double yaw, double speed);
+
+  int getLane();
+  double getLaneD();
 };
 
 
