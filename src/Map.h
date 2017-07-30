@@ -8,6 +8,7 @@
 #include <sstream>
 #include <math.h>
 #include "spline.h"
+#include "helpers.h"
 
 using namespace std;
 

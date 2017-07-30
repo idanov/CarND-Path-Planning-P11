@@ -57,15 +57,10 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
 
-          // Main car's localization Data
-          double car_x = j[1]["x"];
-          double car_y = j[1]["y"];
-          double car_s = j[1]["s"];
-          double car_d = j[1]["d"];
-          double car_yaw = j[1]["yaw"];
-          double car_speed = j[1]["speed"];
-          // TODO: Update ego state
-
+          // Update ego's position
+          ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
+          ego.updateYawAndSpeed(j[1]["yaw"], j[1]["speed"]);
+          
           // Previous path data given to the Planner
           auto previous_path_x = j[1]["previous_path_x"];
           auto previous_path_y = j[1]["previous_path_y"];
@@ -80,8 +75,9 @@ int main() {
             if(cars.find(id) == cars.end()) {
               cars[id].id = id;
             }
-
-            // TODO: Update other cars' state
+            // Update other cars' states
+            cars[id].updatePos(other[5], other[6], other[1], other[2]);
+            cars[id].updateSpeed(other[3], other[4]);
           }
 
           json msgJson;
@@ -89,10 +85,10 @@ int main() {
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
-          double dist_inc = 0.3;
+          double dist_inc = 0.4;
           for(int i = 0; i < 50; i++)
           {
-            const vector<double> &p = world.getXY(car_s + (dist_inc * i), 6);
+            const vector<double> &p = world.getXY(ego.s + (dist_inc * i), 6);
             next_x_vals.push_back(p[0]);
             next_y_vals.push_back(p[1]);
           }
