@@ -67,8 +67,6 @@ int main() {
           ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
           auto sd_dot = world.getFrenetVelocity(ego.s, ego.d, mph2ms * (double) j[1]["speed"], deg2rad(j[1]["yaw"]));
           ego.updateVelocity(sd_dot[0], sd_dot[1]);
-          cout<<j[1]["speed"]<<endl;
-          ego.display();
 
           // Previous path data given to the BehaviourPlanner
           auto previous_path_x = j[1]["previous_path_x"];
