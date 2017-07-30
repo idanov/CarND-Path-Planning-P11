@@ -113,11 +113,13 @@ vector<double> Map::getFrenet(double x, double y, double theta) {
 
 // Transform from Frenet s,d coordinates to Cartesian x,y
 vector<double> Map::getXY(double s, double d) {
-  int prev_wp = -1;
-
-  while (s > maps_s[prev_wp + 1] && (prev_wp < (int) (maps_s.size() - 1))) {
-    prev_wp++;
-  }
+  // Ensure s is [0, max_s]
+  if(s >= max_s) s -= max_s;
+  if(s < 0) s += max_s;
+  // Use log2(N) operations for finding the last passed waypoint
+  auto upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
+  long prev_wp = upper - maps_s.begin();
+  prev_wp -= 1;
 
   vector<double> nearest_s;
   vector<double> nearest_x;

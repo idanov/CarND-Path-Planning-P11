@@ -8,10 +8,10 @@
 using namespace std;
 
 class PredictionModule {
-  const Map& world;
+  Map& world;
   const map<int, Car>& cars;
 public:
-  PredictionModule(const Map& world_, const map<int, Car>& cars_): world(world_), cars(cars_) {}
+  PredictionModule(Map& world_, const map<int, Car>& cars_): world(world_), cars(cars_) {}
   vector<vector<Car>> generatePredictions(int horizon = 50);
 };
 

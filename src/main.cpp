@@ -66,7 +66,7 @@ int main() {
           // Update ego's position
           ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
           ego.updateYawAndSpeed(j[1]["yaw"], j[1]["speed"]);
-          
+
           // Previous path data given to the BehaviourPlanner
           auto previous_path_x = j[1]["previous_path_x"];
           auto previous_path_y = j[1]["previous_path_y"];
