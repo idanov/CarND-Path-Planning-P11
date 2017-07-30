@@ -18,14 +18,10 @@ public:
   double d_dot;
   double d_ddot;
 
-  double speed;
-  double yaw;
-
   Car();
   explicit Car(int id);
   void updatePos(double s, double d, double x, double y);
-  void updateSpeed(double vx, double vy);
-  void updateYawAndSpeed(double yaw, double speed);
+  void updateVelocity(double s_dot, double d_dot);
 
   int getLane();
   double getLaneD();

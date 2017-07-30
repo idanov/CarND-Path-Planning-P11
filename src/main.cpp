@@ -63,9 +63,10 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
 
-          // Update ego's position
+          // Update ego's position and velocity
           ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
-          ego.updateYawAndSpeed(j[1]["yaw"], j[1]["speed"]);
+          auto sd_dot = world.getFrenetVelocity(ego.s, ego.d, j[1]["speed"], deg2rad(j[1]["yaw"]));
+          ego.updateVelocity(sd_dot[0], sd_dot[1]);
 
           // Previous path data given to the BehaviourPlanner
           auto previous_path_x = j[1]["previous_path_x"];
@@ -83,7 +84,9 @@ int main() {
             }
             // Update other cars' states
             cars[id].updatePos(other[5], other[6], other[1], other[2]);
-            cars[id].updateSpeed(other[3], other[4]);
+            auto polar = cartesian2polar(other[3], other[4]);
+            auto other_sd_dot = world.getFrenetVelocity(cars[id].s, cars[id].d, polar[0], polar[1]);
+            cars[id].updateVelocity(other_sd_dot[0], other_sd_dot[1]);
           }
 
           json msgJson;

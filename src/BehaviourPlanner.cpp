@@ -19,11 +19,11 @@ Car BehaviourPlanner::updatePlan(Car ego, vector<vector<Car>> predictions) {
 
   double t = 1;
   if(!leader_path.empty()) {
-    ego.s = min(leader_path.end()->s - 10, ego.s + ego.speed * t);
-    ego.speed = leader_path.end()->speed;
+    ego.s = min(leader_path.end()->s - 10, ego.s + ego.s_dot * t);
+    ego.s_dot = leader_path.end()->s_dot;
   } else {
-    ego.s = ego.s + ego.speed * t;
-    ego.speed = 21;
+    ego.s = ego.s + ego.s_dot * t;
+    ego.s_dot = 21;
   }
 
   return ego;

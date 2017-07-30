@@ -1,7 +1,10 @@
 #ifndef PATH_PLANNING_HELPERS_H
 #define PATH_PLANNING_HELPERS_H
 
+#include <vector>
 #include <math.h>
+
+using namespace std;
 
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
@@ -18,6 +21,13 @@ inline double distance(double x1, double y1, double x2, double y2);
 
 inline double distance(double x1, double y1, double x2, double y2) {
   return euclidean(x2 - x1, y2 - y1);
+}
+
+inline vector<double> cartesian2polar(double vx, double vy) {
+  double speed = euclidean(vx, vy);
+  double theta = atan2(vy, vx);
+  if(theta < 0) theta += 2 * M_PI;
+  return {speed, theta};
 }
 
 #endif //PATH_PLANNING_HELPERS_H
