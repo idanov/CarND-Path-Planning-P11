@@ -11,8 +11,6 @@ const double LANE_WIDTH = 4;
 class Car {
 public:
   int id;
-  double x;
-  double y;
 
   double s;
   double s_dot;
@@ -23,7 +21,7 @@ public:
 
   Car();
   explicit Car(int id);
-  void updatePos(double s, double d, double x, double y);
+  void updatePos(double s, double d);
   void updateVelocity(double s_dot, double d_dot);
   Car stateAt(double dt);
 

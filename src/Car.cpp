@@ -1,18 +1,29 @@
 #include "Car.h"
+#include "helpers.h"
 
 Car::Car(int id) {
   this->id = id;
+  this->s = 0;
+  this->s_dot = 0;
+  this->s_ddot = 0;
+  this->d = 0;
+  this->d_dot = 0;
+  this->d_ddot = 0;
 }
 
 Car::Car() {
   this->id = -1;
+  this->s = 0;
+  this->s_dot = 0;
+  this->s_ddot = 0;
+  this->d = 0;
+  this->d_dot = 0;
+  this->d_ddot = 0;
 }
 
-void Car::updatePos(double s, double d, double x, double y) {
-  this->s = s;
+void Car::updatePos(double s, double d) {
+  this->s = circuit(s);
   this->d = d;
-  this->x = x;
-  this->y = y;
 }
 
 int Car::getLane() {
@@ -29,11 +40,11 @@ void Car::updateVelocity(double s_dot, double d_dot) {
 }
 
 void Car::display() {
-  cout<<"Car("<<id<<"): s("<<s<<","<<s_dot<<")   d("<<d<<","<<d_dot<<")"<<endl;
+  cout<<"Car("<<id<<"): s("<<s<<","<<s_dot<<","<<s_ddot<<")   d("<<d<<","<<d_dot<<","<<d_ddot<<")"<<endl;
 }
 
 Car Car::stateAt(double dt) {
   Car state = Car(*this);
-  state.s = s + dt * s_dot;
+  state.s = circuit(s + dt * s_dot);
   return state;
 }

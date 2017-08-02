@@ -63,18 +63,18 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
 
-          // Update ego's position and velocity
-          ego.updatePos(j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"]);
-          auto sd_dot = world.getFrenetVelocity(ego.s, ego.d, mph2ms * (double) j[1]["speed"], deg2rad(j[1]["yaw"]));
-          ego.updateVelocity(sd_dot[0], sd_dot[1]);
-
           // Previous path data given to the BehaviourPlanner
-          auto previous_path_x = j[1]["previous_path_x"];
-          auto previous_path_y = j[1]["previous_path_y"];
+          vector<double> previous_path_x = j[1]["previous_path_x"];
+          vector<double> previous_path_y = j[1]["previous_path_y"];
           // Previous path's end s and d values
           double end_path_s = j[1]["end_path_s"];
           double end_path_d = j[1]["end_path_d"];
-
+          
+          // Update ego's position and velocity
+          ego.updatePos(j[1]["s"], j[1]["d"]);
+          const vector<double> &vel = traj.getLastVelocity(previous_path_x.size());
+          ego.updateVelocity(vel[0], vel[1]);
+          
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
           auto sensor_fusion = j[1]["sensor_fusion"];
           for(auto other : sensor_fusion) {
@@ -84,7 +84,7 @@ int main() {
             }
 
             // Update other cars' states
-            cars[id].updatePos(other[5], other[6], other[1], other[2]);
+            cars[id].updatePos(other[5], other[6]);
             auto polar = cartesian2polar(other[3], other[4]);
             auto other_sd_dot = world.getFrenetVelocity(cars[id].s, cars[id].d, polar[0], polar[1]);
             cars[id].updateVelocity(other_sd_dot[0], other_sd_dot[1]);
