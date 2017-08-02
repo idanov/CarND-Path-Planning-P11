@@ -114,8 +114,7 @@ vector<double> Map::getFrenet(double x, double y, double theta) {
 // Transform from Frenet s,d coordinates to Cartesian x,y
 vector<double> Map::getXY(double s, double d) {
   // Ensure s is [0, max_s]
-  if(s >= max_s) s -= max_s;
-  if(s < 0) s += max_s;
+  s = circuit(s);
   // Use log2(N) operations for finding the last passed waypoint
   auto upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
   long prev_wp = upper - maps_s.begin();
@@ -125,7 +124,7 @@ vector<double> Map::getXY(double s, double d) {
   vector<double> nearest_x;
   vector<double> nearest_y;
 
-  for(int i = -2; i < 4; i++) {
+  for(int i = -3; i < 5; i++) {
     size_t n = maps_s.size();
     size_t wp = (n + prev_wp + i) % n;
     nearest_x.push_back(maps_x[wp] + d * maps_dx[wp]);
@@ -155,8 +154,7 @@ vector<double> Map::getXY(double s, double d) {
 
 vector<double> Map::getFrenetVelocity(double s, double d, double speed, double theta) {
   // Ensure s is [0, max_s]
-  if(s >= max_s) s -= max_s;
-  if(s < 0) s += max_s;
+  s = circuit(s);
   // Use log2(N) operations for finding the last passed waypoint
   auto upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
   long prev_wp = upper - maps_s.begin();
@@ -166,7 +164,7 @@ vector<double> Map::getFrenetVelocity(double s, double d, double speed, double t
   vector<double> nearest_x;
   vector<double> nearest_y;
 
-  for(int i = -2; i < 4; i++) {
+  for(int i = -3; i < 5; i++) {
     size_t n = maps_s.size();
     size_t wp = (n + prev_wp + i) % n;
     nearest_x.push_back(maps_x[wp] + d * maps_dx[wp]);
@@ -196,7 +194,7 @@ vector<double> Map::getFrenetVelocity(double s, double d, double speed, double t
   if(road_angle < 0) road_angle += 2 * M_PI;
   double diff = theta - road_angle;
 
-  double s_dot = speed * cos(diff);
+  double s_dot = fabs(speed * cos(diff));
   double d_dot = speed * sin(diff);
 
   return {s_dot, d_dot};
