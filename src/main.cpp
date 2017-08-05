@@ -63,20 +63,20 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
 
-          //////////////////////////////////////
-          // Update ego's position and velocity
-          //////////////////////////////////////
-          traj.updateCar(ego, j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"], j[1]["speed"], j[1]["yaw"]);
-
-          /////////////////////////////////////////////////////
-          // Previous path data given to the BehaviourPlanner
-          ////////////////////////////////////////////////////
           vector<double> previous_path_x = j[1]["previous_path_x"];
           vector<double> previous_path_y = j[1]["previous_path_y"];
           // Previous path's end s and d values
           double end_path_s = j[1]["end_path_s"];
           double end_path_d = j[1]["end_path_d"];
-          // Refresh stale data for previous path
+
+          //////////////////////////////////////
+          // Update ego's position and velocity
+          //////////////////////////////////////
+          traj.updateCar(ego, j[1]["s"], j[1]["d"], j[1]["speed"], j[1]["yaw"], previous_path_x.size());
+
+          /////////////////////////////////////////////////////
+          // Previous path data given to the BehaviourPlanner
+          ////////////////////////////////////////////////////
           traj.refreshPreviousPath(previous_path_x, previous_path_y);
 
           ////////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,5 @@
 #include "TrajectoryGenerator.h"
 
-#include <utility>
-
 vector<vector<double>>
 TrajectoryGenerator::generate(Car currState, Car goalState) {
 
@@ -59,17 +57,8 @@ std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, ve
   };
 }
 
-void TrajectoryGenerator::updateCar(Car& ego, double sim_s, double sim_d, double sim_x, double sim_y, double sim_speed, double sim_yaw) {
-  long min_idx = -1;
-  double min_dist = max_s;
-
-  for(int i = 0; i < old_path_x.size(); i++) {
-    double curr_dist = distance(sim_x, old_path_x[i], sim_y, old_path_y[i]);
-    if(curr_dist < min_dist) {
-      min_dist = curr_dist;
-      min_idx = i;
-    }
-  }
+void TrajectoryGenerator::updateCar(Car& ego, double sim_s, double sim_d, double sim_speed, double sim_yaw, size_t path_len) {
+  long min_idx = old_path_s.size() - path_len - 1;
 
   if(min_idx > 0) {
     double s_dot = circuitDiff(old_path_s[min_idx], old_path_s[min_idx - 1]) / dt;
@@ -96,7 +85,7 @@ void TrajectoryGenerator::followTrajectory(Car& ego, size_t horizon) {
     double d_dot = old_path_d[horizon] - old_path_d[horizon - 1];
     ego.updatePos(old_path_s[horizon], old_path_d[horizon]);
     ego.updateVelocity(s_dot, d_dot);
-  } if(horizon == 0) {
+  } else if(horizon == 0) {
     double s_dot = circuitDiff(old_path_s[horizon], ego.s) / dt;
     double d_dot = old_path_d[horizon] - ego.d;
     ego.updatePos(old_path_s[horizon], old_path_d[horizon]);

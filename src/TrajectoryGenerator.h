@@ -24,7 +24,7 @@ class TrajectoryGenerator {
 public:
   explicit TrajectoryGenerator(Map& world_): world(world_) {}
   void refreshPreviousPath(vector<double> previous_path_x, vector<double> previous_path_y);
-  void updateCar(Car& ego, double sim_s, double sim_d, double sim_x, double sim_y, double sim_speed, double sim_yaw);
+  void updateCar(Car& ego, double sim_s, double sim_d, double sim_speed, double sim_yaw, size_t path_len);
   void followTrajectory(Car& ego, size_t horizon);
   vector<vector<double>> generate(Car currState, Car goalState);
 };
