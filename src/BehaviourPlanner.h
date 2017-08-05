@@ -14,7 +14,7 @@ class BehaviourPlanner {
   string state;
 public:
   explicit BehaviourPlanner(string initial_state);
-  Car updatePlan(Car ego, const vector<vector<Car>>& predictions);
+  Car updatePlan(const Car& ego, const vector<vector<Car>>& predictions);
 };
 
 #endif //PATH_PLANNING_PLANNER_H

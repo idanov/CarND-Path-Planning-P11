@@ -26,11 +26,11 @@ void Car::updatePos(double s, double d) {
   this->d = d;
 }
 
-int Car::getLane() {
-  return (int) d / (int) LANE_WIDTH;
+int Car::getLane() const {
+  return (int) (d / LANE_WIDTH);
 }
 
-double Car::getLaneD() {
+double Car::getLaneD() const {
   return this->d - (this->getLane() * LANE_WIDTH + LANE_WIDTH / 2);
 }
 
@@ -39,8 +39,14 @@ void Car::updateVelocity(double s_dot, double d_dot) {
   this->d_dot = d_dot;
 }
 
-void Car::display() {
-  cout<<"Car("<<id<<"): s("<<s<<","<<s_dot<<","<<s_ddot<<")   d("<<d<<","<<d_dot<<","<<d_ddot<<")"<<endl;
+string Car::display() const {
+  stringstream res;
+  res.precision(2);
+  res<<"Car("<<id<<"): ";
+  res<<"s("<<fixed<<s<<", "<<fixed<<s_dot<<", "<<fixed<<s_ddot<<") | ";
+  res<<"d("<<fixed<<d<<", "<<fixed<<d_dot<<", "<<fixed<<d_ddot<<") | ";
+  res<<"lane("<<getLane()<<")"<<endl;
+  return res.str();
 }
 
 Car Car::stateAt(double dt) {

@@ -2,7 +2,9 @@
 #define PATH_PLANNING_CAR_H
 
 #include <math.h>
+#include <sstream>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -25,9 +27,9 @@ public:
   void updateVelocity(double s_dot, double d_dot);
   Car stateAt(double dt);
 
-  int getLane();
-  void display();
-  double getLaneD();
+  int getLane() const;
+  string display() const;
+  double getLaneD() const;
 };
 
 #endif //PATH_PLANNING_CAR_H

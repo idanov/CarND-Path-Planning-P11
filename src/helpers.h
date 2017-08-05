@@ -11,13 +11,19 @@ const double max_speed = 22.;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
-const double reaction_time = 0.4;
+const double reaction_time = 0.3;
 
 const size_t n_steps = 100;
 const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
 const double mph2ms = 0.44704;
-// a delay of 0.2 at max speed is ~5m, cars are ~5m in length, ~15m buffer should be fine
-const double car_buffer = 15;
+// The desired car buffer depends on the speed
+// In general, we want 2 car lengths (cars are crashing at 1 car length) +
+// the distance our car will travel through the reaction time if
+// the lead car is breaking at max acceleration and we are speeding up at max acceleration
+const double car_length = 5;
+const auto fn_car_buffer = [](double v) {
+  return 2 * car_length + v * reaction_time - 0.5 * 2 * max_acc * reaction_time * reaction_time;
+};
 const double time_horizon = n_steps * dt;
 
 // The max s value before wrapping around the track back to 0
@@ -28,9 +34,11 @@ inline double circuit(double s) {
 }
 
 inline double circuitDiff(double s1, double s2) {
-  auto a = circuit(s1) + max_s;
+  auto a = circuit(s1);
   auto b = circuit(s2);
-  auto diff = circuit(a - b);
+  auto diff = a - b;
+  if(diff < -max_s / 2) diff += max_s;
+  if(diff > max_s / 2) diff -= max_s;
   return diff;
 }
 
