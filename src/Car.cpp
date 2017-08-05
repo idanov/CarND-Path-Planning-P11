@@ -39,18 +39,23 @@ void Car::updateVelocity(double s_dot, double d_dot) {
   this->d_dot = d_dot;
 }
 
-string Car::display() const {
-  stringstream res;
-  res.precision(2);
-  res<<"Car("<<id<<"): ";
-  res<<"s("<<fixed<<s<<", "<<fixed<<s_dot<<", "<<fixed<<s_ddot<<") | ";
-  res<<"d("<<fixed<<d<<", "<<fixed<<d_dot<<", "<<fixed<<d_ddot<<") | ";
-  res<<"lane("<<getLane()<<")"<<endl;
-  return res.str();
+void Car::display() const {
+  cout<<(*this)<<endl;
 }
 
 Car Car::stateAt(double dt) {
   Car state = Car(*this);
   state.s = circuit(s + dt * s_dot);
   return state;
+}
+
+std::ostream &operator<<(std::ostream &stream, const Car &car) {
+  streamsize init_precision = stream.precision();
+  stream.precision(2);
+  stream<<"Car("<<car.id<<"): ";
+  stream<<"s("<<fixed<<car.s<<", "<<fixed<<car.s_dot<<", "<<fixed<<car.s_ddot<<") | ";
+  stream<<"d("<<fixed<<car.d<<", "<<fixed<<car.d_dot<<", "<<fixed<<car.d_ddot<<") | ";
+  stream<<"lane("<<car.getLane()<<")";
+  stream.precision(init_precision);
+  return stream;
 }

@@ -26,9 +26,9 @@ public:
   void updatePos(double s, double d);
   void updateVelocity(double s_dot, double d_dot);
   Car stateAt(double dt);
-
   int getLane() const;
-  string display() const;
+  friend std::ostream& operator<<(std::ostream& stream, const Car& matrix);
+  void display() const;
   double getLaneD() const;
 };
 

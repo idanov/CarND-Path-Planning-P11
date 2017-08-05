@@ -44,8 +44,9 @@ int main() {
   TrajectoryGenerator traj(world);
   BehaviourPlanner planner("KL");
   Car ego(1000);
+  bool trace = true;
 
-  h.onMessage([&world, &ego, &cars, &planner, &traj, &predictor](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&trace, &world, &ego, &cars, &planner, &traj, &predictor](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -72,7 +73,11 @@ int main() {
           //////////////////////////////////////
           // Update ego's position and velocity
           //////////////////////////////////////
-          traj.updateCar(ego, j[1]["s"], j[1]["d"], j[1]["speed"], j[1]["yaw"], previous_path_x.size());
+          double old_s = ego.s;
+          const vector<double> &frenetVel = world.getFrenetVelocity(j[1]["s"], j[1]["d"], mph2ms * ((double) j[1]["speed"]), deg2rad(j[1]["yaw"]));
+          traj.updateCar(ego, j[1]["s"], j[1]["d"], frenetVel[0], frenetVel[1], traj.getHistoryLen() - previous_path_x.size());
+
+          if(ego.s < old_s) trace = false;
 
           /////////////////////////////////////////////////////
           // Previous path data given to the BehaviourPlanner

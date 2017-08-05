@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <math.h>
+#include <iterator>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ const double max_speed = 22.;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
-const double reaction_time = 0.3;
+const double reaction_time = 0.2;
 
 const size_t n_steps = 100;
 const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
@@ -25,6 +26,7 @@ const auto fn_car_buffer = [](double v) {
   return 2 * car_length + v * reaction_time - 0.5 * 2 * max_acc * reaction_time * reaction_time;
 };
 const double time_horizon = n_steps * dt;
+const double plan_time = time_horizon - reaction_time;
 
 // The max s value before wrapping around the track back to 0
 const double max_s = 6945.554;
@@ -64,6 +66,16 @@ inline vector<double> cartesian2polar(double vx, double vy) {
   double theta = atan2(vy, vx);
   if(theta < 0) theta += 2 * M_PI;
   return {speed, theta};
+}
+
+template<class T> ostream& operator<<(ostream& stream, const std::vector<T>& values) {
+  streamsize init_precision = stream.precision();
+  stream.precision(2);
+  stream << "[ ";
+  copy(std::begin(values), std::end(values), ostream_iterator<T>(stream<<fixed, " ") );
+  stream << ']';
+  stream.precision(init_precision);
+  return stream;
 }
 
 #endif //PATH_PLANNING_HELPERS_H
