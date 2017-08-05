@@ -1,54 +1,35 @@
 #include "TrajectoryGenerator.h"
 
+#include <utility>
+
 vector<vector<double>>
-TrajectoryGenerator::generate(Car currState, Car goalState, vector<double> previous_path_x, vector<double> previous_path_y,
-                              double end_path_s, double end_path_d) {
-  const size_t steps = 3;
-  const size_t past = old_path_s.size() - previous_path_x.size();
-  currState = addDelay(currState, past, steps);
+TrajectoryGenerator::generate(Car currState, Car goalState) {
 
-  vector<double> next_x_vals;
-  vector<double> next_y_vals;
-
-  cout<<"==="<<endl;
-  currState.display();
-  goalState.display();
-  cout<<"==="<<endl;
-
-  cout<<"Size: "<<old_path_s.size()<<endl;
-  if(old_path_s.size() > past + steps) {
-    old_path_s.erase(old_path_s.begin(), old_path_s.begin() + past);
-    old_path_d.erase(old_path_d.begin(), old_path_d.begin() + past);
-    cout<<"Size: "<<old_path_s.size()<<endl;
-    old_path_s.resize(steps);
-    old_path_d.resize(steps);
-    cout<<"Size: "<<old_path_s.size()<<endl;
-    cout<<"cccccc "<<old_path_s[0]<<" "<<currState.s<<endl;
-  } else {
-    old_path_s.clear();
-    old_path_d.clear();
+  size_t delay = 0;
+  if(!old_path_s.empty()) {
+    delay = min(old_path_s.size(), n_steps_react);
+    old_path_s.resize(delay);
+    old_path_d.resize(delay);
+    old_path_x.resize(delay);
+    old_path_y.resize(delay);
+    followTrajectory(currState, delay);
   }
 
-  const function<double(double)> &s_fn = JMT({currState.s, currState.s_dot, currState.s_ddot}, {goalState.s, goalState.s_dot, goalState.s_ddot}, (n_steps - old_path_s.size()) * dt);
-  const function<double(double)> &d_fn = JMT({currState.d, currState.d_dot, currState.d_ddot}, {goalState.d, goalState.d_dot, goalState.d_ddot}, (n_steps - old_path_s.size()) * dt);
-
-  for(int i = 0; i < n_steps - old_path_s.size(); i++) {
-    double s = s_fn(i * dt);
-    double d = d_fn(i * dt);
-    old_path_s.push_back(s);
-    old_path_d.push_back(d);
+  size_t n_future_steps = n_steps - delay;
+  const function<double(double)> &fn_s = JMT({currState.s, currState.s_dot, 0}, {goalState.s, goalState.s_dot, 0}, n_future_steps * dt);
+  const function<double(double)> &fn_d = JMT({currState.d, currState.d_dot, 0}, {goalState.d, 0, 0}, n_future_steps * dt);
+  for(int i = 1; i <= n_future_steps; i++) {
+    old_path_s.push_back(fn_s(i * dt));
+    old_path_d.push_back(fn_d(i * dt));
   }
 
-  cout<<endl<<"=========="<<endl;
-  for(int i = 0; i < old_path_s.size(); i++) {
-    const vector<double> &path = world.getXY(old_path_s[i], old_path_d[i]);
-    cout<<"("<<old_path_s[i]<<","<<old_path_d[i]<<")  ";
-    next_x_vals.push_back(path[0]);
-    next_y_vals.push_back(path[1]);
+  for(int i = 0; i < n_future_steps; i++) {
+    const vector<double> &pos = world.getXY(old_path_s[i], old_path_d[i]);
+    old_path_x.push_back(pos[0]);
+    old_path_y.push_back(pos[1]);
   }
-  cout<<endl<<"=========="<<endl;
 
-  return {next_x_vals, next_y_vals};
+  return {old_path_x, old_path_y};
 }
 
 std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, vector<double> end, double T) {
@@ -78,40 +59,62 @@ std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, ve
   };
 }
 
-Car TrajectoryGenerator::addDelay(Car currState, size_t past, size_t steps) {
-  if(past > 0 && steps > 1 && (old_path_s.size() - past) > steps) {
-    // Calculate the car's position after the delay
-    double s = old_path_s[past + steps + 1];
-    // Calculate velocity from the last point
-    double s_dot = circuitDiff(s, old_path_s[past + steps]) / dt;
-    // Calculate acceleration from the change in velocity from first to last step
-    double s_ddot = ((circuitDiff(old_path_s[past + 1], old_path_s[past]) / dt) - s_dot) / (steps * dt);
-    // Move the car with the delay
-    currState.s = s;
-    currState.s_dot = s_dot;
-    currState.s_ddot = s_ddot;
+void TrajectoryGenerator::updateCar(Car& ego, double sim_s, double sim_d, double sim_x, double sim_y, double sim_speed, double sim_yaw) {
+  long min_idx = -1;
+  double min_dist = max_s;
 
-    // Calculate the car's position after the delay
-    double d = old_path_d[past + steps + 1];
-    // Calculate velocity from the last point
-    double d_dot = (d - old_path_d[past + steps]) / dt;
-    // Calculate acceleration from the change in velocity from first to last step
-    double d_ddot = ((old_path_s[past + 1] - old_path_s[past]) / dt - d_dot) / (steps * dt);
-    // Move the car with the delay
-    currState.d = d;
-    currState.d_dot = d_dot;
-    currState.d_ddot = d_ddot;
+  for(int i = 0; i < old_path_x.size(); i++) {
+    double curr_dist = distance(sim_x, old_path_x[i], sim_y, old_path_y[i]);
+    if(curr_dist < min_dist) {
+      min_dist = curr_dist;
+      min_idx = i;
+    }
   }
 
-  return currState;
+  if(min_idx > 0) {
+    double s_dot = circuitDiff(old_path_s[min_idx], old_path_s[min_idx - 1]) / dt;
+    double d_dot = old_path_d[min_idx] - old_path_d[min_idx - 1];
+    ego.updatePos(old_path_s[min_idx], old_path_d[min_idx]);
+    ego.updateVelocity(s_dot, d_dot);
+  } if(min_idx == 0) {
+    double s_dot = circuitDiff(old_path_s[min_idx], ego.s) / dt;
+    double d_dot = old_path_d[min_idx] - ego.d;
+    ego.updatePos(old_path_s[min_idx], old_path_d[min_idx]);
+    ego.updateVelocity(s_dot, d_dot);
+  } else {
+    // If we don't have any historical data, we fallback to simulator data
+    const vector<double> &frenetVel = world.getFrenetVelocity(sim_s, sim_d, mph2ms * sim_speed, deg2rad(sim_yaw));
+    ego.updatePos(sim_s, sim_d);
+    ego.updateVelocity(frenetVel[0], frenetVel[1]);
+  }
 }
 
-vector<double> TrajectoryGenerator::getLastVelocity(size_t prev_path_size) {
-  double s_dot = 0;
-  double d_dot = 0;
-  if(prev_path_size > 1) {
-    s_dot = circuitDiff(old_path_s[1], old_path_s[0]) / dt;
-    d_dot = old_path_d[1] - old_path_d[0];
+void TrajectoryGenerator::followTrajectory(Car& ego, size_t horizon) {
+  horizon = min(old_path_s.size(), horizon) - 1;
+  if(horizon > 0) {
+    double s_dot = circuitDiff(old_path_s[horizon], old_path_s[horizon - 1]) / dt;
+    double d_dot = old_path_d[horizon] - old_path_d[horizon - 1];
+    ego.updatePos(old_path_s[horizon], old_path_d[horizon]);
+    ego.updateVelocity(s_dot, d_dot);
+  } if(horizon == 0) {
+    double s_dot = circuitDiff(old_path_s[horizon], ego.s) / dt;
+    double d_dot = old_path_d[horizon] - ego.d;
+    ego.updatePos(old_path_s[horizon], old_path_d[horizon]);
+    ego.updateVelocity(s_dot, d_dot);
   }
-  return {s_dot, d_dot};
+}
+
+void TrajectoryGenerator::refreshPreviousPath(vector<double> previous_path_x, vector<double> previous_path_y) {
+  old_path_x.clear();
+  old_path_y.clear();
+  old_path_x = std::move(previous_path_x);
+  old_path_y = std::move(previous_path_y);
+  size_t past = old_path_s.size() - old_path_x.size();
+  if(!old_path_x.empty() && past > 0) {
+    old_path_s.erase(old_path_s.begin(), old_path_s.begin() + past);
+    old_path_d.erase(old_path_d.begin(), old_path_d.begin() + past);
+  } else {
+    old_path_s.clear();
+    old_path_d.clear();
+  }
 }

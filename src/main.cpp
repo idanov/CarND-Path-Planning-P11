@@ -43,7 +43,7 @@ int main() {
   PredictionModule predictor(world, cars);
   TrajectoryGenerator traj(world);
   BehaviourPlanner planner("KL");
-  Car ego(-1);
+  Car ego(1000);
 
   h.onMessage([&world, &ego, &cars, &planner, &traj, &predictor](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -63,19 +63,25 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
 
+          //////////////////////////////////////
+          // Update ego's position and velocity
+          //////////////////////////////////////
+          traj.updateCar(ego, j[1]["s"], j[1]["d"], j[1]["x"], j[1]["y"], j[1]["speed"], j[1]["yaw"]);
+
+          /////////////////////////////////////////////////////
           // Previous path data given to the BehaviourPlanner
+          ////////////////////////////////////////////////////
           vector<double> previous_path_x = j[1]["previous_path_x"];
           vector<double> previous_path_y = j[1]["previous_path_y"];
           // Previous path's end s and d values
           double end_path_s = j[1]["end_path_s"];
           double end_path_d = j[1]["end_path_d"];
-          
-          // Update ego's position and velocity
-          ego.updatePos(j[1]["s"], j[1]["d"]);
-          const vector<double> &vel = traj.getLastVelocity(previous_path_x.size());
-          ego.updateVelocity(vel[0], vel[1]);
-          
+          // Refresh stale data for previous path
+          traj.refreshPreviousPath(previous_path_x, previous_path_y);
+
+          ////////////////////////////////////////////////////////////////////////////////
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
+          ////////////////////////////////////////////////////////////////////////////////
           auto sensor_fusion = j[1]["sensor_fusion"];
           for(auto other : sensor_fusion) {
             int id = other[0];
@@ -90,19 +96,20 @@ int main() {
             cars[id].updateVelocity(other_sd_dot[0], other_sd_dot[1]);
           }
 
-          json msgJson;
-
+          /////////////////
           // Action
-          vector<vector<Car>> predictions = predictor.generatePredictions();
+          /////////////////
+          vector<vector<Car>> predictions = predictor.generatePredictions(n_steps);
           Car goalState = planner.updatePlan(ego, predictions);
-          vector<vector<double>> path = traj.generate(ego, goalState, previous_path_x, previous_path_y, end_path_s, end_path_d);
+          vector<vector<double>> path = traj.generate(ego, goalState);
 
           vector<double> next_x_vals = path[0];
           vector<double> next_y_vals = path[1];
 
+
+          json msgJson;
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
-
           auto msg = "42[\"control\"," + msgJson.dump() + "]";
 
           //this_thread::sleep_for(chrono::milliseconds(1000));

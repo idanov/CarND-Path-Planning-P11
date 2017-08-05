@@ -21,11 +21,12 @@ class TrajectoryGenerator {
   vector<double> old_path_s;
   vector<double> old_path_d;
   std::function<double (double)> JMT(vector< double> start, vector <double> end, double T);
-  Car addDelay(Car currState, size_t past, size_t steps = 3);
 public:
   explicit TrajectoryGenerator(Map& world_): world(world_) {}
-  vector<double> getLastVelocity(size_t prev_path_size);
-  vector<vector<double>> generate(Car currState, Car goalState, vector<double> previous_path_x, vector<double> previous_path_y, double end_path_s, double end_path_d);
+  void refreshPreviousPath(vector<double> previous_path_x, vector<double> previous_path_y);
+  void updateCar(Car& ego, double sim_s, double sim_d, double sim_x, double sim_y, double sim_speed, double sim_yaw);
+  void followTrajectory(Car& ego, size_t horizon);
+  vector<vector<double>> generate(Car currState, Car goalState);
 };
 
 

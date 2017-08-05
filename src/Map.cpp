@@ -116,7 +116,7 @@ vector<double> Map::getXY(double s, double d) {
   // Ensure s is [0, max_s]
   s = circuit(s);
   // Use log2(N) operations for finding the last passed waypoint
-  auto upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
+  const vector<double>::iterator &upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
   long prev_wp = upper - maps_s.begin();
   prev_wp -= 1;
 
@@ -156,7 +156,7 @@ vector<double> Map::getFrenetVelocity(double s, double d, double speed, double t
   // Ensure s is [0, max_s]
   s = circuit(s);
   // Use log2(N) operations for finding the last passed waypoint
-  auto upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
+  const vector<double>::iterator &upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
   long prev_wp = upper - maps_s.begin();
   prev_wp -= 1;
 

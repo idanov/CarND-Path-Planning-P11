@@ -7,7 +7,7 @@ BehaviourPlanner::BehaviourPlanner(string initial_state) {
 Car BehaviourPlanner::updatePlan(Car ego, const vector<vector<Car>>& predictions) {
   Car goal(ego);
 
-  goal.s += max_speed;
+  goal.s += max_speed * dt * n_steps;
   goal.s_dot = max_speed;
   goal.s_ddot = 0;
   goal.d = 6;

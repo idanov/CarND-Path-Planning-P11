@@ -6,16 +6,19 @@
 
 using namespace std;
 
-// Max speed in m/s
+// Units are meters, seconds and steps (one step is dt time)
 const double max_speed = 22.;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
-const double max_speed_dt = max_speed * dt;
+const double reaction_time = 0.4;
 
-const int n_steps = 50;
+const size_t n_steps = 100;
+const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
 const double mph2ms = 0.44704;
+// a delay of 0.2 at max speed is ~5m, cars are ~5m in length, ~15m buffer should be fine
 const double car_buffer = 15;
+const double time_horizon = n_steps * dt;
 
 // The max s value before wrapping around the track back to 0
 const double max_s = 6945.554;
