@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 using namespace std;
 
@@ -25,7 +26,8 @@ public:
   explicit Car(int id);
   void updatePos(double s, double d);
   void updateVelocity(double s_dot, double d_dot);
-  Car stateAt(double dt);
+  void followTrajectory(const vector<double>& path_s, const vector<double>& path_d, size_t steps);
+  Car stateAt(double dt) const;
   int getLane() const;
   friend std::ostream& operator<<(std::ostream& stream, const Car& matrix);
   void display() const;

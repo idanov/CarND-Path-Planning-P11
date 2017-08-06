@@ -72,14 +72,21 @@ int main() {
           //////////////////////////////////////
           // Update ego's position and velocity
           //////////////////////////////////////
-          double old_s = ego.s;
-          const vector<double> &frenetVel = world.getFrenetVelocity(j[1]["s"], j[1]["d"], mph2ms * ((double) j[1]["speed"]), deg2rad(j[1]["yaw"]));
-          traj.updateCar(ego, j[1]["s"], j[1]["d"], frenetVel[0], frenetVel[1], traj.getHistoryLen() - previous_path_x.size());
+          const size_t past = traj.getTrajectoryLength() - previous_path_x.size();
+          if(past > 0) {
+            const vector<vector<double>> trajectory = traj.getTrajectory();
+            ego.followTrajectory(trajectory[0], trajectory[1], past);
+          } else {
+            // If we don't have any historical data, we fallback to default values
+            const vector<double> &frenetVelocity = world.getFrenetVelocity(j[1]["s"], j[1]["d"], mph2ms * ((double) j[1]["speed"]), deg2rad(j[1]["yaw"]));
+            ego.updatePos(j[1]["s"], j[1]["d"]);
+            ego.updateVelocity(frenetVelocity[0], frenetVelocity[1]);
+          }
 
           /////////////////////////////////////////////////////
           // Previous path data given to the BehaviourPlanner
           ////////////////////////////////////////////////////
-          traj.refreshPreviousPath(previous_path_x, previous_path_y);
+          traj.refreshPreviousPath(previous_path_x.size());
 
           ////////////////////////////////////////////////////////////////////////////////
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
@@ -103,7 +110,7 @@ int main() {
           /////////////////
           vector<vector<Car>> predictions = predictor.generatePredictions(n_steps);
           Car goalState = planner.updatePlan(ego, predictions);
-          vector<vector<double>> path = traj.generate(ego, goalState);
+          vector<vector<double>> path = traj.updateTrajectory(ego, goalState);
 
           vector<double> next_x_vals = path[0];
           vector<double> next_y_vals = path[1];

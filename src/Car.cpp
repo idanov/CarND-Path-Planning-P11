@@ -43,7 +43,7 @@ void Car::display() const {
   cout<<(*this)<<endl;
 }
 
-Car Car::stateAt(double dt) {
+Car Car::stateAt(double dt) const {
   Car state = Car(*this);
   state.s = circuit(s + dt * s_dot);
   return state;
@@ -58,4 +58,23 @@ std::ostream &operator<<(std::ostream &stream, const Car &car) {
   stream<<"lane("<<car.getLane()<<")";
   stream.precision(init_precision);
   return stream;
+}
+
+void Car::followTrajectory(const vector<double>& path_s, const vector<double>& path_d, size_t steps) {
+  long idx = steps - 1;
+  if(idx > 0) {
+    double s_dot = circuitDiff(path_s[idx], path_s[idx - 1]) / dt;
+    double d_dot = (path_d[idx] - path_d[idx - 1]) / dt;
+    this->s_ddot = (s_dot - this->s_dot) / ((idx + 1) * dt);
+    this->d_ddot = (d_dot - this->d_dot) / ((idx + 1) * dt);
+    updatePos(path_s[idx], path_d[idx]);
+    updateVelocity(s_dot, d_dot);
+  } else if(idx == 0) {
+    double s_dot = circuitDiff(path_s[idx], this->s) / dt;
+    double d_dot = (path_d[idx] - this->d) / dt;
+    this->s_ddot = (s_dot - this->s_dot) / dt;
+    this->d_ddot = (d_dot - this->d_dot) / dt;
+    updatePos(path_s[idx], path_d[idx]);
+    updateVelocity(s_dot, d_dot);
+  }
 }
