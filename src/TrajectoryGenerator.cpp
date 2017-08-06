@@ -1,20 +1,14 @@
 #include "TrajectoryGenerator.h"
 
 vector<vector<double>>
-TrajectoryGenerator::generate(Car currState, Car goalState) const {
-  // Add a reaction delay
-  size_t delay = min(old_path_s.size(), n_steps_react);
-
-  // Copy the path for the delay
-  vector<double> next_path_s(old_path_s.begin(), old_path_s.begin() + delay);
-  vector<double> next_path_d(old_path_d.begin(), old_path_d.begin() + delay);
-  // Move the car along the path to simulate the delay
-  currState.followTrajectory(next_path_s, next_path_d, delay);
+TrajectoryGenerator::generate(Car currState, Car goalState, size_t n_future_steps) const {
+  // New path
+  vector<double> next_path_s;
+  vector<double> next_path_d;
 
   // Generate curves for the future
-  size_t n_future_steps = n_steps - delay;
-  const function<double(double)> &fn_s = JMT({currState.s, currState.s_dot, currState.s_ddot}, {goalState.s, goalState.s_dot, 0}, n_future_steps * dt);
-  const function<double(double)> &fn_d = JMT({currState.d, currState.d_dot, currState.d_ddot}, {goalState.d, 0, 0}, n_future_steps * dt);
+  const function<double(double)> &fn_s = JMT({currState.s, currState.s_dot, currState.s_ddot}, {goalState.s, goalState.s_dot, goalState.s_ddot}, n_future_steps * dt);
+  const function<double(double)> &fn_d = JMT({currState.d, currState.d_dot, currState.d_ddot}, {goalState.d, goalState.d_dot, goalState.d_ddot}, n_future_steps * dt);
 
   // Append the future path with the delayed in Frenet
   double prev_s = currState.s;
@@ -71,16 +65,26 @@ size_t TrajectoryGenerator::getTrajectoryLength() const {
   return old_path_s.size();
 }
 
-const vector<vector<double>> TrajectoryGenerator::getTrajectory() const {
+vector<vector<double>> TrajectoryGenerator::getTrajectory() const {
   return {old_path_s, old_path_d};
 }
 
 vector<vector<double>> TrajectoryGenerator::updateTrajectory(Car currState, Car goalState) {
-  // Generate the final path
-  vector<vector<double>> path = generate(currState, goalState);
-  // Save it for the next cycle
-  old_path_s = path[0];
-  old_path_d = path[1];
+  // Limit the delay to the length of old_path_s
+  size_t delay = min(old_path_s.size(), n_steps_react);
+  size_t n_future_steps = n_steps - delay;
+
+  // Remove the tail of the old path
+  old_path_s.resize(delay);
+  old_path_d.resize(delay);
+  // Move the car along the path to simulate the delay
+  currState.followTrajectory(old_path_s, old_path_d, delay);
+
+  // Generate the final path of length n_future_steps
+  vector<vector<double>> path = generate(currState, goalState, n_future_steps);
+  // Append the newly generated path
+  old_path_s.insert(old_path_s.end(), path[0].begin(), path[0].end());
+  old_path_d.insert(old_path_d.end(), path[1].begin(), path[1].end());
 
   // Convert to Cartesian
   vector<double> next_path_x;
