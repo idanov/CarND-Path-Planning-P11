@@ -21,31 +21,23 @@ Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& pred
     }
   }
 
-
-  double s_move = max_speed * dt * n_steps;
-  double car_max_speed = max_speed;
+  double car_max_speed = min(max_speed, ego.s_dot + max_acc * time_horizon);
+  double s_move = min(max_speed * time_horizon, ego.s_dot * time_horizon + 0.5 * max_acc * pow(time_horizon, 2));
   if(leader_idx != -1) {
     const vector<Car>& pred = predictions[leader_idx];
-    car_max_speed = pred[pred.size() - 1].s_dot;
-    s_move = min(s_move, circuitDiff(pred[pred.size() - 1].s - fn_car_buffer(car_max_speed), ego.s));
+    double goal_dist = circuitDiff(pred[pred.size() - 1].s - fn_car_buffer(car_max_speed), ego.s);
+    if(goal_dist > 0 && goal_dist < s_move) {
+      car_max_speed = pred[pred.size() - 1].s_dot;
+      s_move = goal_dist;
+    }
   }
 
-  goal.s = circuit(goal.s + s_move);
+  goal.s = circuit(ego.s + s_move);
   goal.s_dot = car_max_speed;
   goal.s_ddot = 0;
   goal.d = 6;
   goal.d_dot = 0;
   goal.d_ddot = 0;
-
-  if(leader_idx != -1) {
-    const vector<Car>& pred = predictions[leader_idx];
-    cout<<"=================="<<endl;
-    cout<<circuitDiff(pred[0].s, ego.s)<<","<<circuitDiff(pred[pred.size() - 1].s, goal.s)<<endl;
-    cout<<s_move<<","<<car_max_speed<<endl;
-    cout<<ego.display()<<" --> "<<goal.display()<<endl;
-    cout<<pred[0].display()<<" --> "<<pred[pred.size() - 1].display()<<endl;
-    cout<<"=================="<<endl;
-  }
 
   return goal;
 }

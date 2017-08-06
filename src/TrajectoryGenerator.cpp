@@ -16,10 +16,10 @@ TrajectoryGenerator::generate(Car currState, Car goalState) {
   size_t n_future_steps = n_steps - delay;
   const function<double(double)> &fn_s = JMT({currState.s, currState.s_dot, currState.s_ddot}, {goalState.s, goalState.s_dot, 0}, n_future_steps * dt);
   const function<double(double)> &fn_d = JMT({currState.d, currState.d_dot, currState.d_ddot}, {goalState.d, 0, 0}, n_future_steps * dt);
-  double prev_s = fn_s(0);
+  double prev_s = currState.s;
   for(int i = 1; i <= n_future_steps; i++) {
     // This is required to ensure we are advancing at each step to prevent buggy behaviour
-    double next_s = max(fn_s(i * dt), prev_s + 0.002);
+    double next_s = max(fn_s(i * dt), prev_s + 0.02);
     old_path_s.push_back(next_s);
     old_path_d.push_back(fn_d(i * dt));
     prev_s = next_s;
