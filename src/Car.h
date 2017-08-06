@@ -9,8 +9,6 @@
 
 using namespace std;
 
-const double LANE_WIDTH = 4;
-
 class Car {
 public:
   int id;
@@ -28,7 +26,7 @@ public:
   void updateVelocity(double s_dot, double d_dot);
   void followTrajectory(const vector<double>& path_s, const vector<double>& path_d, size_t steps);
   Car stateAt(double dt) const;
-  int getLane() const;
+  size_t getLane() const;
   friend std::ostream& operator<<(std::ostream& stream, const Car& matrix);
   void display() const;
   double getLaneD() const;

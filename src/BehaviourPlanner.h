@@ -3,17 +3,23 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include "helpers.h"
 #include "Car.h"
+#include "TrajectoryGenerator.h"
 
 using namespace std;
 
 class BehaviourPlanner {
-  string state;
+  size_t target_lane;
+  const TrajectoryGenerator& traj;
+  Car generateGoal(size_t goal_lane, Car ego, const vector<vector<Car>> &predictions) const;
+  vector<Car> findLeaderInLane(size_t lane, double s, const vector<vector<Car>> &predictions) const;
+  double calculateCost(Car ego, Car goal, const vector<vector<Car>> &predictions) const;
 public:
-  explicit BehaviourPlanner(string initial_state);
+  explicit BehaviourPlanner(const TrajectoryGenerator& traj_, size_t initial_lane): traj(traj_), target_lane(initial_lane) {};
   Car updatePlan(const Car& ego, const vector<vector<Car>>& predictions);
 };
 

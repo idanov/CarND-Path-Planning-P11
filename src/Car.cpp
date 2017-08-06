@@ -26,8 +26,8 @@ void Car::updatePos(double s, double d) {
   this->d = d;
 }
 
-int Car::getLane() const {
-  return (int) (d / LANE_WIDTH);
+size_t Car::getLane() const {
+  return d < 0 ? 1000 : (size_t) (d / LANE_WIDTH);
 }
 
 double Car::getLaneD() const {

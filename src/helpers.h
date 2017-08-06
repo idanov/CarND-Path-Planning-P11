@@ -7,6 +7,12 @@
 
 using namespace std;
 
+const double LANE_WIDTH = 4;
+const size_t n_lanes = 3;
+const auto lane_d = [](size_t lane) {
+  return lane * LANE_WIDTH + LANE_WIDTH / 2;
+};
+
 // Units are meters, seconds and steps (one step is dt time)
 const double max_speed = 21.;
 const double min_speed = 2.;
@@ -14,7 +20,7 @@ const double max_acc = 10.;
 const double dt = .02;
 const double reaction_time = 0.2;
 
-const size_t n_steps = 100;
+const size_t n_steps = 120;
 const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
 const double mph2ms = 0.44704;
 // The desired car buffer depends on the speed

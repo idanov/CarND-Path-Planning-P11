@@ -42,7 +42,7 @@ int main() {
   std::map<int, Car> cars;
   PredictionModule predictor(world, cars);
   TrajectoryGenerator traj(world);
-  BehaviourPlanner planner("KL");
+  BehaviourPlanner planner(traj, 1);
   Car ego(1000);
 
   h.onMessage([&world, &ego, &cars, &planner, &traj, &predictor](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
