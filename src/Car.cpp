@@ -61,7 +61,7 @@ std::ostream &operator<<(std::ostream &stream, const Car &car) {
 }
 
 void Car::followTrajectory(const vector<double>& path_s, const vector<double>& path_d, size_t steps) {
-  long idx = steps - 1;
+  long idx = min(steps, path_s.size()) - 1;
   if(idx > 0) {
     double s_dot = circuitDiff(path_s[idx], path_s[idx - 1]) / dt;
     double d_dot = (path_d[idx] - path_d[idx - 1]) / dt;
