@@ -8,7 +8,7 @@
 using namespace std;
 
 // Units are meters, seconds and steps (one step is dt time)
-const double max_speed = 22.;
+const double max_speed = 21.;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
@@ -20,10 +20,10 @@ const double mph2ms = 0.44704;
 // The desired car buffer depends on the speed
 // In general, we want 2 car lengths (cars are crashing at 1 car length) +
 // the distance our car will travel through the reaction time if
-// the lead car is breaking at max acceleration and we are speeding up at max acceleration
+// the lead car is breaking with 3/4 of max deceleration and we are speeding up at 3/4 max acceleration
 const double car_length = 5;
 const auto fn_car_buffer = [](double v) {
-  return 2 * car_length + v * reaction_time - 0.5 * 2 * max_acc * reaction_time * reaction_time;
+  return 2 * car_length + v * reaction_time - 0.5 * 1.5 * max_acc * reaction_time * reaction_time;
 };
 const double time_horizon = n_steps * dt;
 const double plan_time = time_horizon - reaction_time;

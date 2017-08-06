@@ -34,7 +34,7 @@ TrajectoryGenerator::generate(Car currState, Car goalState) {
   return {old_path_x, old_path_y};
 }
 
-std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, vector<double> end, double T) {
+std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, vector<double> end, double T) const {
   MatrixXd A = MatrixXd(3, 3);
   A << T*T*T, T*T*T*T, T*T*T*T*T,
       3*T*T, 4*T*T*T,5*T*T*T*T,
@@ -61,7 +61,7 @@ std::function<double (double)> TrajectoryGenerator::JMT(vector<double> start, ve
   };
 }
 
-void TrajectoryGenerator::updateCar(Car& ego, double default_s, double default_d, double default_s_dot, double default_d_dot, size_t delay) {
+void TrajectoryGenerator::updateCar(Car& ego, double default_s, double default_d, double default_s_dot, double default_d_dot, size_t delay) const {
   long idx = delay - 1;
   if(idx > 0) {
     double s_dot = circuitDiff(old_path_s[idx], old_path_s[idx - 1]) / dt;
