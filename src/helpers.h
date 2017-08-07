@@ -14,7 +14,7 @@ const auto lane_d = [](size_t lane) {
 };
 
 // Units are meters, seconds and steps (one step is dt time)
-const double max_speed = 21.;
+const double max_speed = 21.6;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
