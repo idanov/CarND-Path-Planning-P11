@@ -30,7 +30,7 @@ const double mph2ms = 0.44704;
 const double car_length = 5;
 const double car_width = 3.2;
 const auto fn_car_buffer = [](double v) {
-  return 2 * car_length + v * reaction_time - 0.5 * 1.5 * max_acc * reaction_time * reaction_time;
+  return 2 * car_length + v * reaction_time - 0.5 * 2 * max_acc * reaction_time * reaction_time;
 };
 const double time_horizon = n_steps * dt;
 const double plan_time = time_horizon - reaction_time;
