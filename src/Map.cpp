@@ -29,84 +29,16 @@ Map::Map(string map_file_) {
 
 // Transform from Frenet s,d coordinates to Cartesian x,y
 vector<double> Map::getXY(double s, double d) {
-  // Ensure s is [0, max_s]
-  s = circuit(s);
-  // Use log2(N) operations for finding the last passed waypoint
-  const vector<double>::iterator &upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
-  long prev_wp = upper - maps_s.begin();
-  prev_wp -= 1;
-
-  vector<double> nearest_s;
-  vector<double> nearest_x;
-  vector<double> nearest_y;
-
-  for(int i = -3; i < 5; i++) {
-    size_t n = maps_s.size();
-    size_t wp = (n + prev_wp + i) % n;
-    nearest_x.push_back(maps_x[wp] + d * maps_dx[wp]);
-    nearest_y.push_back(maps_y[wp] + d * maps_dy[wp]);
-    // Correct for circuit coordinates
-    double temp_s = maps_s[wp];
-    if(prev_wp + i < 0) {
-      temp_s -= max_s;
-    } else if(prev_wp + i >= n) {
-      temp_s += max_s;
-    }
-    nearest_s.push_back(temp_s);
-  }
-
-  // Get the curve from the nearest 6 waypoints
-  tk::spline curve_x;
-  tk::spline curve_y;
-  curve_x.set_points(nearest_s, nearest_x);
-  curve_y.set_points(nearest_s, nearest_y);
-
-  double x = curve_x(s);
-  double y = curve_y(s);
-
-  return {x, y};
-
+  const vector<tk::spline> &curves = getSplines(s, d);
+  return {curves[0](s), curves[1](s)};
 }
 
 vector<double> Map::getFrenetVelocity(double s, double d, double speed, double theta) {
-  // Ensure s is [0, max_s]
-  s = circuit(s);
-  // Use log2(N) operations for finding the last passed waypoint
-  const vector<double>::iterator &upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
-  long prev_wp = upper - maps_s.begin();
-  prev_wp -= 1;
+  const vector<tk::spline> &curves = getSplines(s, d);
+  double dx = curves[0].deriv(1, s);
+  double dy = curves[1].deriv(1, s);
 
-  vector<double> nearest_s;
-  vector<double> nearest_x;
-  vector<double> nearest_y;
-
-  for(int i = -3; i < 5; i++) {
-    size_t n = maps_s.size();
-    size_t wp = (n + prev_wp + i) % n;
-    nearest_x.push_back(maps_x[wp] + d * maps_dx[wp]);
-    nearest_y.push_back(maps_y[wp] + d * maps_dy[wp]);
-    // Correct for circuit coordinates
-    double temp_s = maps_s[wp];
-    if(prev_wp + i < 0) {
-      temp_s -= max_s;
-    } else if(prev_wp + i >= n) {
-      temp_s += max_s;
-    }
-    nearest_s.push_back(temp_s);
-  }
-
-  // Get the curve from the nearest 6 waypoints
-  tk::spline curve_x;
-  tk::spline curve_y;
-  curve_x.set_points(nearest_s, nearest_x);
-  curve_y.set_points(nearest_s, nearest_y);
-
-  double x = curve_x(s);
-  double y = curve_y(s);
-  double x2 = curve_x(s + 1);
-  double y2 = curve_y(s + 1);
-
-  double road_angle = atan2(y2 - y, x2 - x);
+  double road_angle = atan2(dy, dx);
   if(road_angle < 0) road_angle += 2 * M_PI;
   double diff = theta - road_angle;
 
@@ -114,4 +46,40 @@ vector<double> Map::getFrenetVelocity(double s, double d, double speed, double t
   double d_dot = speed * sin(diff);
 
   return {s_dot, d_dot};
+}
+
+vector<tk::spline> Map::getSplines(double s, double d) {
+  // Ensure s is [0, max_s]
+  s = circuit(s);
+  // Use log2(N) operations for finding the last passed waypoint
+  const vector<double>::iterator &upper = std::upper_bound(maps_s.begin(), maps_s.end(), s);
+  long prev_wp = upper - maps_s.begin();
+  prev_wp -= 1;
+
+  vector<double> nearest_s;
+  vector<double> nearest_x;
+  vector<double> nearest_y;
+
+  for(int i = -3; i < 5; i++) {
+    size_t n = maps_s.size();
+    size_t wp = (n + prev_wp + i) % n;
+    nearest_x.push_back(maps_x[wp] + d * maps_dx[wp]);
+    nearest_y.push_back(maps_y[wp] + d * maps_dy[wp]);
+    // Correct for circuit coordinates
+    double temp_s = maps_s[wp];
+    if(prev_wp + i < 0) {
+      temp_s -= max_s;
+    } else if(prev_wp + i >= n) {
+      temp_s += max_s;
+    }
+    nearest_s.push_back(temp_s);
+  }
+
+  // Get the curve from the nearest 6 waypoints
+  tk::spline curve_x;
+  tk::spline curve_y;
+  curve_x.set_points(nearest_s, nearest_x);
+  curve_y.set_points(nearest_s, nearest_y);
+  
+  return {curve_x, curve_y};
 }

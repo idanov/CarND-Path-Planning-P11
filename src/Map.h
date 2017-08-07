@@ -19,14 +19,11 @@ class Map {
   vector<double> maps_dx;
   vector<double> maps_dy;
 
-  int ClosestWaypoint(double x, double y);
-  int NextWaypoint(double x, double y, double theta);
-
 public:
   explicit Map(string map_file);
+  vector<tk::spline> getSplines(double s, double d);
   vector<double> getXY(double s, double d);
   vector<double> getFrenetVelocity(double s, double d, double speed, double yaw);
-  vector<double> getFrenet(double x, double y, double theta);
 };
 
 
