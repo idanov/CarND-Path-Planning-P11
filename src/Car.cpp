@@ -78,3 +78,7 @@ void Car::followTrajectory(const vector<double>& path_s, const vector<double>& p
     updateVelocity(s_dot, d_dot);
   }
 }
+
+bool Car::crashWith(const Car &other) const {
+  return fabs(circuitDiff(s, other.s)) <= car_length && fabs(d - other.d) <= car_width;
+}

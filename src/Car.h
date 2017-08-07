@@ -27,6 +27,7 @@ public:
   void followTrajectory(const vector<double>& path_s, const vector<double>& path_d, size_t steps);
   Car stateAt(double dt) const;
   size_t getLane() const;
+  bool crashWith(const Car& other) const;
   friend std::ostream& operator<<(std::ostream& stream, const Car& matrix);
   void display() const;
   double getLaneD() const;

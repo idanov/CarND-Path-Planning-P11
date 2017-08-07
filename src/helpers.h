@@ -28,6 +28,7 @@ const double mph2ms = 0.44704;
 // the distance our car will travel through the reaction time if
 // the lead car is breaking with 3/4 of max deceleration and we are speeding up at 3/4 max acceleration
 const double car_length = 5;
+const double car_width = 3.2;
 const auto fn_car_buffer = [](double v) {
   return 2 * car_length + v * reaction_time - 0.5 * 1.5 * max_acc * reaction_time * reaction_time;
 };
