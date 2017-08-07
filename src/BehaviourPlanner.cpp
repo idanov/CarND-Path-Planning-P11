@@ -5,21 +5,18 @@ Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& pred
   const vector<Car> best_path = generateTrajectory(ego, best_goal);
   double best_cost = calculateCost(ego, best_goal, best_path, predictions);
 
-  cout<<"Best: "<<best_cost<<": "<<ego<<best_goal<<endl;
   for(size_t goal_lane = 0; goal_lane < n_lanes; goal_lane++) {
     long lanes_to_switch = abs(static_cast<long>(goal_lane) - static_cast<long>(ego.getLane()));
     if(lanes_to_switch < 2) {
       Car goal = generateGoal(goal_lane, ego, predictions);
       const vector<Car> path = generateTrajectory(ego, best_goal);
       double cost = calculateCost(ego, goal, path, predictions);
-      cout<<"Alternatives: "<<cost<<": "<<ego<<goal<<endl;
       if(cost < best_cost) {
         best_cost = cost;
         best_goal = goal;
       }
     }
   }
-  cout<<"=========="<<endl;
 
   target_lane = best_goal.getLane();
   return best_goal;

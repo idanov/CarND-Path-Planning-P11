@@ -6,6 +6,10 @@ TrajectoryGenerator::generate(Car currState, Car goalState, size_t n_future_step
   vector<double> next_path_s;
   vector<double> next_path_d;
 
+  // Correction for the reset of s coordinates
+  if(fabs(currState.s - goalState.s) > max_s / 2) {
+    goalState.s += max_s;
+  }
   // Generate curves for the future
   const function<double(double)> &fn_s = JMT({currState.s, currState.s_dot, currState.s_ddot}, {goalState.s, goalState.s_dot, goalState.s_ddot}, n_future_steps * dt);
   const function<double(double)> &fn_d = JMT({currState.d, currState.d_dot, currState.d_ddot}, {goalState.d, goalState.d_dot, goalState.d_ddot}, n_future_steps * dt);
