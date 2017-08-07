@@ -17,7 +17,8 @@ class BehaviourPlanner {
   const TrajectoryGenerator& traj;
   Car generateGoal(size_t goal_lane, Car ego, const vector<vector<Car>> &predictions) const;
   vector<Car> findLeaderInLane(size_t lane, double s, const vector<vector<Car>> &predictions) const;
-  double calculateCost(Car ego, Car goal, const vector<vector<Car>> &predictions) const;
+  vector<Car> generateTrajectory(Car ego, Car goal) const;
+  double calculateCost(Car ego, Car goal, const vector<Car>& trajectory, const vector<vector<Car>> &predictions) const;
 public:
   explicit BehaviourPlanner(const TrajectoryGenerator& traj_, size_t initial_lane): traj(traj_), target_lane(initial_lane) {};
   Car updatePlan(const Car& ego, const vector<vector<Car>>& predictions);
