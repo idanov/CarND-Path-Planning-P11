@@ -10,7 +10,7 @@ vector<vector<Car>> PredictionModule::generatePredictions(int horizon) {
 
 vector<Car> PredictionModule::generatePredictions(Car car, int horizon) {
   vector<Car> predictions;
-  for(int i = 0; i < horizon; i++) {
+  for(int i = 0; i <= horizon; i++) {
     predictions.push_back(car.stateAt(i * dt));
   }
   return predictions;
