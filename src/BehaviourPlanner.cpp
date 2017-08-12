@@ -52,7 +52,8 @@ Car BehaviourPlanner::generateGoal(size_t goal_lane, Car ego, const vector<vecto
 
   // Calculate best target position along s
   double target_s_dot = min(max_speed, ego.s_dot + max_acc * time_horizon);
-  double s_move = min(max_speed * time_horizon, ego.s_dot * time_horizon + 0.5 * max_acc * pow(time_horizon, 2));
+  double acc = (target_s_dot - ego.s_dot) / time_horizon;
+  double s_move = ego.s_dot * time_horizon + 0.5 * acc * pow(time_horizon, 2);
 
   // If there is a leader car, add restriction to the target position if necessary
   if(!leader.empty()) {
@@ -84,7 +85,7 @@ double BehaviourPlanner::calculateCost(Car ego, Car goal, const vector<Car>& tra
   int crash = 0;
   for(vector<Car> other : predictions) {
     for(int i = 0; i < trajectory.size(); i++) {
-      if(trajectory[i].crashWith(other[i])) {
+      if(trajectory[i].crashWith(other[i + 1])) {
         crash = 1;
         break;
       }
@@ -94,10 +95,10 @@ double BehaviourPlanner::calculateCost(Car ego, Car goal, const vector<Car>& tra
   double dangerous = 0;
   for(vector<Car> other : predictions) {
     for(int i = 0; i < trajectory.size(); i++) {
-      if(fabs(trajectory[i].d - other[i].d) <= car_width) {
-        double front_buffer = fn_car_buffer(trajectory[i].s_dot);
-        double back_buffer = fn_car_buffer(other[i].s_dot);
-        double dist = circuitDiff(trajectory[i].s, other[i].s);
+      if(fabs(trajectory[i].d - other[i + 1].d) <= car_width) {
+        double front_buffer = fn_car_buffer(trajectory[i + 1].s_dot);
+        double back_buffer = fn_car_buffer(other[i + 1].s_dot);
+        double dist = circuitDiff(trajectory[i + 1].s, other[i + 1].s);
         if(dist > 0 && dist <= front_buffer) {
           dangerous = max(dangerous, (front_buffer - dist) / front_buffer);
         }
