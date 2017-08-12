@@ -18,7 +18,7 @@ const double max_speed = 21.5;
 const double min_speed = 2.;
 const double max_acc = 10.;
 const double dt = .02;
-const double reaction_time = 0.1;
+const double reaction_time = 0.2;
 
 const size_t n_steps = 100;
 const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
@@ -30,7 +30,7 @@ const double mph2ms = 0.44704;
 const double car_length = 5;
 const double car_width = 3.2;
 const auto fn_car_buffer = [](double v) {
-  return 2 * car_length + v * reaction_time + 0.5 * 2 * max_acc * reaction_time * reaction_time;
+  return 2 * car_length + v * reaction_time + 0.5 * 2 * max_acc * pow(reaction_time, 2);
 };
 const double time_horizon = n_steps * dt;
 

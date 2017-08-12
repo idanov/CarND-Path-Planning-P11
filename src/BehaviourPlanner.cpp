@@ -2,7 +2,7 @@
 
 Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& predictions) {
   Car best_goal = generateGoal(target_lane, ego, predictions);
-  const vector<Car> best_path = generateTrajectory(ego, best_goal);
+  const vector<Car> best_path = generateTrajectory(ego, best_goal, n_steps_react);
   double best_cost = calculateCost(ego, best_goal, best_path, predictions);
 
   // Favour finishing previous decisions before coming up with new ideas
@@ -14,7 +14,7 @@ Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& pred
     long lanes_to_switch = abs(static_cast<long>(goal_lane) - static_cast<long>(ego.getLane()));
     if(lanes_to_switch < 2) {
       Car goal = generateGoal(goal_lane, ego, predictions);
-      const vector<Car> path = generateTrajectory(ego, best_goal);
+      const vector<Car> path = generateTrajectory(ego, best_goal, n_steps_react);
       double cost = calculateCost(ego, goal, path, predictions);
       if(cost < best_cost) {
         best_cost = cost;
@@ -113,29 +113,39 @@ double BehaviourPlanner::calculateCost(Car ego, Car goal, const vector<Car>& tra
   double speed_cost = max((max_speed - goal.s_dot) / max_speed, 0.);
   int lane_switch = abs(static_cast<int>(ego.getLane()) - static_cast<int>(goal.getLane()));
   auto plan_change_cost = static_cast<int>(goal.getLane() != target_lane);
-  return crash * 10000 + dangerous * 1000 + plan_change_cost * 5 +  lane_switch * 10 + speed_cost * 150;
+  return crash * 10000 + dangerous * 5000 + plan_change_cost * 5 +  lane_switch * 10 + speed_cost * 150;
 }
 
-vector<Car> BehaviourPlanner::generateTrajectory(Car ego, Car goal) const {
+vector<Car> BehaviourPlanner::generateTrajectory(Car ego, Car goal, size_t delay) const {
   // Limit the delay to the length of old_path_s
-  vector<vector<double>> head = traj.getTrajectory();
-  size_t delay = min(head[0].size(), n_steps_react);
-  size_t n_future_steps = n_steps - delay;
+  vector<Car> path = followTrajectory(ego, delay);
+  size_t n_future_steps = n_steps - path.size();
 
-  vector<Car> pred;
-  Car& curr = ego;
-  // Move the car forward
-  for(size_t i = 1; i <= delay; i++) {
-    pred.emplace_back(ego);
-    curr = pred.back();
-    curr.followTrajectory(head[0], head[1], i);
-  }
+  Car curr(ego);
+  if(!path.empty()) curr = path.back();
 
   vector<vector<double>> tail = traj.generate(curr, goal, n_future_steps);
   for(size_t i = 1; i <= n_future_steps; i++) {
-    pred.emplace_back(curr);
-    pred.back().followTrajectory(tail[0], tail[1], i);
+    path.emplace_back(curr);
+    path.back().followTrajectory(tail[0], tail[1], i);
   }
 
-  return pred;
+  return path;
+}
+
+vector<Car> BehaviourPlanner::followTrajectory(Car start, size_t steps) const {
+  // Limit the delay to the length of old_path_s
+  vector<vector<double>> head = traj.getTrajectory();
+  size_t delay = min(traj.getTrajectoryLength(), steps);
+
+  vector<Car> path;
+  Car& curr = start;
+  // Move the car forward
+  for(size_t i = 1; i <= delay; i++) {
+    path.emplace_back(start);
+    curr = path.back();
+    curr.followTrajectory(head[0], head[1], i);
+  }
+
+  return path;
 }
