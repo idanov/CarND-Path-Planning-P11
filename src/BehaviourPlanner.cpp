@@ -45,20 +45,20 @@ vector<Car> BehaviourPlanner::findLeaderInLane(size_t lane, double s, const vect
   return leader;
 }
 
-Car BehaviourPlanner::generateGoal(size_t goal_lane, Car ego, const vector<vector<Car>> &predictions) const {
-  Car goal(ego);
+Car BehaviourPlanner::generateGoal(size_t goal_lane, Car start, const vector<vector<Car>> &predictions) const {
+  Car goal(start);
 
   // Find leader car
-  vector<Car> leader = findLeaderInLane(goal_lane, ego.s, predictions);
+  vector<Car> leader = findLeaderInLane(goal_lane, start.s, predictions);
 
   // Calculate best target position along s
-  double target_s_dot = min(max_speed, ego.s_dot + max_acc * time_horizon);
-  double acc = (target_s_dot - ego.s_dot) / time_horizon;
-  double s_move = ego.s_dot * time_horizon + 0.5 * acc * pow(time_horizon, 2);
+  double target_s_dot = min(max_speed, start.s_dot + max_acc * time_horizon);
+  double acc = (target_s_dot - start.s_dot) / time_horizon;
+  double s_move = start.s_dot * time_horizon + 0.5 * acc * pow(time_horizon, 2);
 
   // If there is a leader car, add restriction to the target position if necessary
   if(!leader.empty()) {
-    double goal_dist = circuitDiff(leader.back().s - fn_car_buffer(target_s_dot), ego.s);
+    double goal_dist = circuitDiff(leader.back().s - fn_car_buffer(target_s_dot), start.s);
     if(goal_dist > 0 && goal_dist < s_move) {
       target_s_dot = leader.back().s_dot;
       s_move = goal_dist;
@@ -66,22 +66,22 @@ Car BehaviourPlanner::generateGoal(size_t goal_lane, Car ego, const vector<vecto
   }
 
   // Calculate best target position along d
-  double target_d = lane_d(ego.getLane());
+  double target_d = lane_d(start.getLane());
   double target_d_dot = 0;
-  if(goal_lane != ego.getLane()) {
+  if(goal_lane != start.getLane()) {
     target_d = lane_d(goal_lane);
   }
 
-  goal.s = circuit(ego.s + s_move);
+  goal.s = circuit(start.s + s_move);
   goal.s_dot = target_s_dot;
   goal.s_ddot = 0;
   goal.d = target_d;
   goal.d_dot = target_d_dot;
-  goal.d_ddot = 0.6 * max_acc * (ego.d - target_d) / LANE_WIDTH;
+  goal.d_ddot = 0.6 * max_acc * (start.d - target_d) / LANE_WIDTH;
   return goal;
 }
 
-double BehaviourPlanner::calculateCost(Car ego, Car goal, const vector<Car>& trajectory, const vector<vector<Car>> &predictions) const {
+double BehaviourPlanner::calculateCost(Car start, Car goal, const vector<Car>& trajectory, const vector<vector<Car>> &predictions) const {
 
   int crash = 0;
   for(vector<Car> other : predictions) {
@@ -112,23 +112,24 @@ double BehaviourPlanner::calculateCost(Car ego, Car goal, const vector<Car>& tra
   }
 
   double speed_cost = max((max_speed - goal.s_dot) / max_speed, 0.);
-  int lane_switch = abs(static_cast<int>(ego.getLane()) - static_cast<int>(goal.getLane()));
+  int lane_switch = abs(static_cast<int>(start.getLane()) - static_cast<int>(goal.getLane()));
   auto plan_change_cost = static_cast<int>(goal.getLane() != target_lane);
   return crash * 10000 + dangerous * 5000 + plan_change_cost * 5 +  lane_switch * 10 + speed_cost * 150;
 }
 
-vector<Car> BehaviourPlanner::generateTrajectory(Car ego, Car goal, size_t delay) const {
+vector<Car> BehaviourPlanner::generateTrajectory(Car start, Car goal, size_t delay) const {
   // Limit the delay to the length of old_path_s
-  vector<Car> path = followTrajectory(ego, delay);
+  vector<Car> path = followTrajectory(start, delay);
   size_t n_future_steps = n_steps - path.size();
 
-  Car curr(ego);
-  if(!path.empty()) curr = path.back();
+  if(!path.empty()) start = path.back();
 
-  vector<vector<double>> tail = traj.generate(curr, goal, n_future_steps);
+  Car curr;
+  vector<vector<double>> tail = traj.generate(start, goal, n_future_steps);
   for(size_t i = 1; i <= n_future_steps; i++) {
+    curr = start;
+    curr.followTrajectory(tail[0], tail[1], i);
     path.emplace_back(curr);
-    path.back().followTrajectory(tail[0], tail[1], i);
   }
 
   return path;
@@ -140,12 +141,12 @@ vector<Car> BehaviourPlanner::followTrajectory(Car start, size_t steps) const {
   size_t delay = min(traj.getTrajectoryLength(), steps);
 
   vector<Car> path;
-  Car& curr = start;
+  Car curr;
   // Move the car forward
   for(size_t i = 1; i <= delay; i++) {
-    path.emplace_back(start);
-    curr = path.back();
+    curr = start;
     curr.followTrajectory(head[0], head[1], i);
+    path.emplace_back(curr);
   }
 
   return path;
