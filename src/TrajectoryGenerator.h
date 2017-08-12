@@ -23,7 +23,7 @@ public:
   explicit TrajectoryGenerator(Map& world_): world(world_) {}
   void refreshPreviousPath(size_t prev_path_length);
   vector<vector<double>> generate(Car currState, Car goalState, size_t n_future_steps) const;
-  vector<vector<double>> updateTrajectory(Car currState, Car goalState);
+  vector<vector<double>> updateTrajectory(const vector<Car>& plan);
   size_t getTrajectoryLength() const;
   vector<vector<double>> getTrajectory() const;
 };

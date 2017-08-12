@@ -110,7 +110,7 @@ int main() {
           /////////////////
           vector<vector<Car>> predictions = predictor.generatePredictions(n_steps);
           vector<Car> plan = planner.updatePlan(ego, predictions);
-          vector<vector<double>> path = traj.updateTrajectory(ego, plan.back());
+          vector<vector<double>> path = traj.updateTrajectory(plan);
 
           vector<double> next_x_vals = path[0];
           vector<double> next_y_vals = path[1];

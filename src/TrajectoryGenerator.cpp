@@ -83,22 +83,15 @@ vector<vector<double>> TrajectoryGenerator::getTrajectory() const {
   return {old_path_s, old_path_d};
 }
 
-vector<vector<double>> TrajectoryGenerator::updateTrajectory(Car currState, Car goalState) {
-  // Limit the delay to the length of old_path_s
-  size_t delay = min(old_path_s.size(), n_steps_react);
-  size_t n_future_steps = n_steps - delay;
+vector<vector<double>> TrajectoryGenerator::updateTrajectory(const vector<Car>& plan) {
+  // Recreate the paths
+  old_path_s.clear();
+  old_path_d.clear();
 
-  // Remove the tail of the old path
-  old_path_s.resize(delay);
-  old_path_d.resize(delay);
-  // Move the car along the path to simulate the delay
-  currState.followTrajectory(old_path_s, old_path_d, delay);
-
-  // Generate the final path of length n_future_steps
-  vector<vector<double>> path = generate(currState, goalState, n_future_steps);
-  // Append the newly generated path
-  old_path_s.insert(old_path_s.end(), path[0].begin(), path[0].end());
-  old_path_d.insert(old_path_d.end(), path[1].begin(), path[1].end());
+  for(const Car& step : plan) {
+    old_path_s.push_back(step.s);
+    old_path_d.push_back(step.d);
+  }
 
   // Convert to Cartesian
   vector<double> next_path_x;
