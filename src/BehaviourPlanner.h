@@ -22,7 +22,7 @@ class BehaviourPlanner {
   double calculateCost(Car ego, Car goal, const vector<Car>& trajectory, const vector<vector<Car>> &predictions) const;
 public:
   explicit BehaviourPlanner(const TrajectoryGenerator& traj_, size_t initial_lane): traj(traj_), target_lane(initial_lane) {};
-  Car updatePlan(const Car& ego, const vector<vector<Car>>& predictions);
+  vector<Car> updatePlan(const Car& ego, const vector<vector<Car>>& predictions);
 };
 
 #endif //PATH_PLANNING_PLANNER_H

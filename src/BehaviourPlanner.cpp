@@ -1,13 +1,13 @@
 #include "BehaviourPlanner.h"
 
-Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& predictions) {
+vector<Car> BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& predictions) {
   Car best_goal = generateGoal(target_lane, ego, predictions);
-  const vector<Car> best_path = generateTrajectory(ego, best_goal, n_steps_react);
+  vector<Car> best_path = generateTrajectory(ego, best_goal, n_steps_react);
   double best_cost = calculateCost(ego, best_goal, best_path, predictions);
 
   // Favour finishing previous decisions before coming up with new ideas
   if(ego.getLane() != target_lane) {
-    return best_goal;
+    return best_path;
   }
 
   for(size_t goal_lane = 0; goal_lane < n_lanes; goal_lane++) {
@@ -19,12 +19,13 @@ Car BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car>>& pred
       if(cost < best_cost) {
         best_cost = cost;
         best_goal = goal;
+        best_path = path;
       }
     }
   }
 
   target_lane = best_goal.getLane();
-  return best_goal;
+  return best_path;
 }
 
 vector<Car> BehaviourPlanner::findLeaderInLane(size_t lane, double s, const vector<vector<Car>> &predictions) const {
