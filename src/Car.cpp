@@ -31,7 +31,7 @@ size_t Car::getLane() const {
 }
 
 double Car::getLaneD() const {
-  return this->d - (this->getLane() * LANE_WIDTH + LANE_WIDTH / 2);
+  return this->d - lane_d(this->getLane());
 }
 
 void Car::updateVelocity(double s_dot, double d_dot) {
@@ -80,5 +80,5 @@ void Car::followTrajectory(const vector<double>& path_s, const vector<double>& p
 }
 
 bool Car::crashWith(const Car &other) const {
-  return fabs(circuitDiff(s, other.s)) <= car_length && fabs(d - other.d) <= car_width;
+  return (fabs(circuitDiff(s, other.s)) <= car_length) && (fabs(d - other.d) <= car_width);
 }

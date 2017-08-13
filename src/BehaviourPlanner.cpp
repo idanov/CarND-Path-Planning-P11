@@ -6,7 +6,7 @@ vector<Car> BehaviourPlanner::updatePlan(const Car& ego, const vector<vector<Car
   double best_cost = calculateCost(ego, best_goal, best_path, predictions);
 
   // Favour finishing previous decisions before coming up with new ideas
-  if(ego.getLane() != target_lane) {
+  if(ego.getLane() != target_lane || fabs(ego.getLaneD()) > LANE_WIDTH / 4) {
     return best_path;
   }
 
@@ -67,7 +67,6 @@ Car BehaviourPlanner::generateGoal(size_t goal_lane, Car start, const vector<vec
 
   // Calculate best target position along d
   double target_d = lane_d(start.getLane());
-  double target_d_dot = 0;
   if(goal_lane != start.getLane()) {
     target_d = lane_d(goal_lane);
   }
@@ -76,45 +75,32 @@ Car BehaviourPlanner::generateGoal(size_t goal_lane, Car start, const vector<vec
   goal.s_dot = target_s_dot;
   goal.s_ddot = 0;
   goal.d = target_d;
-  goal.d_dot = target_d_dot;
-  goal.d_ddot = 0.6 * max_acc * (start.d - target_d) / LANE_WIDTH;
+  goal.d_dot = 0;
+  goal.d_ddot = 0.8 * max_acc * (start.d - target_d) / LANE_WIDTH;
   return goal;
 }
 
 double BehaviourPlanner::calculateCost(Car start, Car goal, const vector<Car>& trajectory, const vector<vector<Car>> &predictions) const {
 
-  int crash = 0;
-  for(vector<Car> other : predictions) {
-    for(int i = 0; i < trajectory.size(); i++) {
-      if(trajectory[i].crashWith(other[i + 1])) {
-        crash = 1;
-        break;
-      }
-    }
-  }
+  auto plan_change_cost = static_cast<int>(goal.getLane() != target_lane);
+  int lane_switch = abs(static_cast<int>(start.getLane()) - static_cast<int>(goal.getLane()));
 
   double dangerous = 0;
-  for(vector<Car> other : predictions) {
-    for(int i = 0; i < trajectory.size(); i++) {
-      if(fabs(trajectory[i].d - other[i + 1].d) <= car_width) {
-        double front_buffer = fn_car_buffer(trajectory[i + 1].s_dot);
-        double back_buffer = fn_car_buffer(other[i + 1].s_dot);
-        double dist = circuitDiff(trajectory[i + 1].s, other[i + 1].s);
-        if(dist > 0 && dist <= front_buffer) {
-          dangerous = max(dangerous, (front_buffer - dist) / front_buffer);
-        }
-
-        if(dist < 0 && fabs(dist) <= back_buffer) {
-          dangerous = max(dangerous, (back_buffer - fabs(dist)) / back_buffer);
-        }
-      }
+  for(const vector<Car>& other : predictions) {
+    double diff = fabs(circuitDiff(other[0].s, start.s));
+    if(diff < fn_car_buffer(start.s_dot) && other[0].getLane() == goal.getLane()) {
+      dangerous += 1;
     }
   }
 
+  double off_center = 0;
+  for(const Car& pos : trajectory) {
+    off_center += pow(pos.getLaneD(), 2);
+  }
+  off_center = sqrt(off_center / trajectory.size());
+
   double speed_cost = max((max_speed - goal.s_dot) / max_speed, 0.);
-  int lane_switch = abs(static_cast<int>(start.getLane()) - static_cast<int>(goal.getLane()));
-  auto plan_change_cost = static_cast<int>(goal.getLane() != target_lane);
-  return crash * 10000 + dangerous * 5000 + plan_change_cost * 5 +  lane_switch * 10 + speed_cost * 150;
+  return dangerous * 10000 + (lane_switch * dangerous) * 5000 + plan_change_cost * 5 +  lane_switch * 10 + speed_cost * 200 + off_center * 100;
 }
 
 vector<Car> BehaviourPlanner::generateTrajectory(Car start, Car goal, size_t delay) const {

@@ -14,21 +14,20 @@ const auto lane_d = [](size_t lane) {
 };
 
 // Units are meters, seconds and steps (one step is dt time)
-const double max_speed = 21.5;
-const double min_speed = 2.;
+const double max_speed = 21.2;
 const double max_acc = 10.;
 const double dt = .02;
-const double reaction_time = 0.2;
+const double reaction_time = 0.1;
 
-const size_t n_steps = 100;
+const size_t n_steps = 75;
 const size_t n_steps_react = static_cast<const size_t>(reaction_time / dt);
 const double mph2ms = 0.44704;
 // The desired car buffer depends on the speed
 // In general, we want 2 car lengths (cars are crashing at 1 car length) +
 // the distance our car will travel through the reaction time if
 // the lead car is breaking with 3/4 of max deceleration and we are speeding up at 3/4 max acceleration
-const double car_length = 5;
-const double car_width = 3.2;
+const double car_length = 5.4;
+const double car_width = 3.6;
 const auto fn_car_buffer = [](double v) {
   return 2 * car_length + v * reaction_time + 0.5 * 2 * max_acc * pow(reaction_time, 2);
 };
