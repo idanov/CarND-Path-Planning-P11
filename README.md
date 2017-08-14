@@ -66,3 +66,18 @@ Getting the Frenet velocity at `(s, d)` works in a similar way, however this tim
 of the splines at `s` to calculate the `yaw` of the road, so that we can [project](src/Map.cpp#L41-L48)
 the car's `speed` and its `yaw` on the tangent to the curve at `s`. This gives us `s_dot` and `d_dot`.
 
+## Predictions
+
+Predicting the future states of the cars is done in a very simplistic way by simply taking the current speed of the car
+along `s` and adding the distance travelled at each step until the end of the time horizon. The code for calculating
+the state of the car at time `dt` can be found [here](src/Car.cpp#L46-L50).
+
+## Trajectory generation
+
+Generating trajectory is done by [fitting](src/TrajectoryGenerator.cpp#L15-L16) two `JMT` polynomials,
+one for the starting `s` and final `s` and their first and second derivatives, i.e. speed and acceleration;
+and one for `d` and its derivatives. The resulting polynomials are used to [generate](src/TrajectoryGenerator.cpp#L19-L26)
+`n_future_steps` waypoints for `s` and `d`. In order to generate trajectories spanning from the end of the circuit across
+the "finish line", we need to apply [correction](src/TrajectoryGenerator.cpp#L10-L12) for the `s` coordinate. Overflowing
+`s` coordinates will be corrected later when converting to Cartesian.
+
