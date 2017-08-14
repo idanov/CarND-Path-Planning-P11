@@ -50,3 +50,19 @@ followed by state update of the other cars on the road [gets updated](src/main.c
 The last couple of actions are [generating the predictions](src/main.cpp#L111) for all other cars, using those predictions
 and the current state of Ego to [update the plan](src/main.cpp#L112) with the Behaviour planning module and then turning
 that plan into the [new trajectory](src/main.cpp#L113) to be submitted to the simulator.
+
+## Frenet to Cartesian conversion
+
+All the planning and trajectory generation happens in Frenet coordinate systems. The finally generated trajectory is
+[converted to Cartesian](src/TrajectoryGenerator.cpp#L88-L94) just before sending it to the simulator. The conversion of
+each point happens in [Map](src/Map.cpp). Before converting it, we make sure that `s` coordinate is within the limits
+of the circular track with calling `circuit(s)`. We then [collect](src/Map.cpp#L63-L76) the Cartesian coordinates of
+the nearest 6 waypoints and the current waypoint in a couple of lists, taking into account `d` and the derivative at the waypoints
+so that we can [fit two splines](src/Map.cpp#L79-L82), one for `x` and one for `y`, both against `s`.
+We force [overflow and underflow](src/Map.cpp#L69-L74) of `s` in order to fit the splines smoothly (they need an always increasing `s`).
+Evaluating the splines at the specified `s` gives us good approximates of `x` and `y` (the error is between `0` and `0.5` per axis, `0.1` on average).
+
+Getting the Frenet velocity at `(s, d)` works in a similar way, however this time we use the [derivatives](src/Map.cpp#L38-L39)
+of the splines at `s` to calculate the `yaw` of the road, so that we can [project](src/Map.cpp#L41-L48)
+the car's `speed` and its `yaw` on the tangent to the curve at `s`. This gives us `s_dot` and `d_dot`.
+
