@@ -1,7 +1,7 @@
 # CarND-Path-Planning-Project
 
 This project is my submission for the first project from Term 3 of Self-Driving Car Engineer Nanodegree Program.
-If you want to find out more about the setup of the project, you can visit the initial instructions [here](instructions.md). 
+If you want to find out more about the setup of the project you can visit the initial instructions [here](instructions.md). 
 
 ## Basic Build Instructions
 
@@ -10,7 +10,12 @@ If you want to find out more about the setup of the project, you can visit the i
 3. Compile: `cmake .. && make`
 4. Run it: `./path_planning`.
 
-## Code organisations
+## Result
+
+The code in this repository results in an incident free trip for more than 6 miles in all of the several
+tests performed. A video for one of the runs could be found [here](https://youtu.be/qzjvMl6z9QI).
+
+## Code organisation
 
 I have split my code into a few classes. I have represented all cars on the road with the class [Car](src/Car.cpp),
 which has a couple of useful methods and most importantly containing `s`, `s_dot`, `s_ddot`, `d`, `d_dot` and `d_ddot`
@@ -80,4 +85,35 @@ and one for `d` and its derivatives. The resulting polynomials are used to [gene
 `n_future_steps` waypoints for `s` and `d`. In order to generate trajectories spanning from the end of the circuit across
 the "finish line", we need to apply [correction](src/TrajectoryGenerator.cpp#L10-L12) for the `s` coordinate. Overflowing
 `s` coordinates will be corrected later when converting to Cartesian.
+
+## Updating the plan
+
+The Behaviour planning module generates a plan and determines a `target_lane` for the Ego car. This happens on every step
+of the cycle and it consists of [generating a few possible goals and trajectories for achieving them](src/BehaviourPlanner.cpp#L13-L25),
+calculating the cost for each trajectory and choosing the best one. However, if the previously generated plan dictated a
+lane change, no other options are considered [until the plan is carried out in full](src/BehaviourPlanner.cpp#L8-L11).
+When [generating trajectories](src/BehaviourPlanner.cpp#L106-L122), a few steps of the new trajectories (`n_steps_react = 5`)
+are always kept the same as the old trajectory to compensate for the delay of the reaction, i.e. planning and transmitting the plan to
+the simulator.
+
+## Generating goals
+
+Generating a goal from the current state to a given lane happens [here](src/BehaviourPlanner.cpp#L48-L81). The goal of
+the car is always to be as close as possible to the maximum speed allowed and in order to get there, it can use
+the maximum allowed acceleration which will cause no jerk. That is achieved by [a couple of formulas](src/BehaviourPlanner.cpp#L55-L57).
+However, we can't always drive that fast and we need to [find the leader car](src/BehaviourPlanner.cpp#L52) in the goal lane.
+The goal is then [adjusted](src/BehaviourPlanner.cpp#L60-L66) such that a minimum buffer distance is kept between Ego and
+the leader car (if the leader car is too close). In case of switching lanes, the target `d_ddot` acceleration is set to be
+opposite to the movement of the car, i.e. we should just have finished moving the car in that direction and decreased
+the speed of our lateral movement by the value of the lateral acceleration. That is expressed by the equation [here](src/BehaviourPlanner.cpp#L79).
+
+## Calculating cost
+
+After generating a trajectory, we evaluate it by [calculating](src/BehaviourPlanner.cpp#L83-L104) the cost of that trajectory.
+The final cost is a weighted sum of a few costs. We incur small penalty for change of plan, a bit bigger cost for lane change,
+a cost for being off the center of a lane and a bigger cost for lower speeds. The highest costs are for dangerous trajectories,
+i.e. trajectories where the Ego car is within a car buffer distance to another car. Also there is an additional penalty for
+dangerous lane changes, since we prefer to be dangerously close to the leader car in the current lane, because it is
+easier to correct for that.
+
 
