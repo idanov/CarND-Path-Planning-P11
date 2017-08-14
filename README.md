@@ -33,3 +33,20 @@ a list of possible trajectories based on their cost. It also contains a few meth
 There is a list of [helper functions](src/helpers.h) and constants, which are used in one or more of the above mentioned
 classes.
 
+## High-level sequence of operations
+
+Here I will outline the sequence of events in [main.cpp](src/main.cpp). All these actions are performed on instances of 
+the earlier mentioned classes. When the simulator makes a call to the running application, a Sense-Plan-Act cycle is started.
+The first thing my program does in the cycle is to [update the Ego car's state](src/main.cpp#L75-L84). If this is the
+first time the state is to be updated, the coordinates are taking from the simulator. For subsequent calls, the program
+relies on the previously submitted trajectory and it moves the car a number of steps along that trajectory. This way we
+can get more accurate information in Frenet, since the simulator's Frenet coordinates differ from our Frenet approximation.
+Also the simulator moves the car along the provided steps perfectly and we can be sure that the Ego car will be at one
+of the previously provided waypoints.
+
+After that the trajectory history gets updated by [removing the waypoints](src/main.cpp#L89) which were already visited,
+followed by state update of the other cars on the road [gets updated](src/main.cpp#L94-L106).
+
+The last couple of actions are [generating the predictions](src/main.cpp#L111) for all other cars, using those predictions
+and the current state of Ego to [update the plan](src/main.cpp#L112) with the Behaviour planning module and then turning
+that plan into the [new trajectory](src/main.cpp#L113) to be submitted to the simulator.
